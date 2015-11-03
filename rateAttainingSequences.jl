@@ -85,8 +85,7 @@ end
 # $| R^{\alpha,l}_j |_{\mathrm{W}^{r,2}_{\rho^\alpha}(B^2)}^2$
 # and
 # $| t^{\alpha,k}_j |_{\mathrm{W}^{l,2}_{\rho^\alpha}(B^2)}^2$
-# in both cases using the non-standard (albeit equivalent equivalent to the
-# standard) seminorm involving the "$z$" and the "$z^*$" derivatives.
+# in both cases using the standard seminorms.
 #
 # The inputs are the quantities (in the notation used above) $\alpha$
 # (character U+03B1 in the code below), $l$ and an array with the indices $j$
@@ -101,10 +100,10 @@ function conjecturedSharpnessTest(α::Real, l::Integer, jarray::AbstractVector{I
 	t = t_alj(α, l, j)
 	res = t - proj(t, 2j+2l-1)
 	# Seminorms
-	wncseminormsressq = all_w_nc_sobolev_sq_sn(res, l)
-	wlncseminormtsq = w_nc_sobolev_sq_sn(t, l)
+	wseminormsressq = all_w_sobolev_sq_sn(res, l)
+	wlseminormtsq = w_sobolev_sq_sn(t, l)
 	display(index)
-	ratios[index,:] = sqrt(wncseminormsressq/wlncseminormtsq)
+	ratios[index,:] = sqrt(wseminormsressq/wlseminormtsq)
     end
     ratios
 end
