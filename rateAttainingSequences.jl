@@ -24,8 +24,8 @@ end
 # ------------------------------------------------------------------------
 # Computation of known ratios revealing sharpness of approximation results
 # ------------------------------------------------------------------------
-# Let us define $R^{\alpha,l}_j$ as
-# $t^{\alpha,l}_j - \operatorname{Proj}^{\alpha}_{2j+2l-1}(t^{\alpha,l}_j)$.
+# Let us define $N^l_j$ as $2j+2l-1$ and $R^{\alpha,l}_j$ as
+# $t^{\alpha,l}_j - \operatorname{Proj}^{\alpha}_{N^l_j}(t^{\alpha,l}_j)$.
 # We compute the ratios between, on the one hand,
 # $\| R^{\alpha,l}_j \|_{\mathrm{L}^2_{\rho^\alpha}(B^2)}^2$
 # and
@@ -79,9 +79,8 @@ end
 # ---------------------------------------------------------------------------
 # Computation of unknown ratios suggesting sharpness of approximation results
 # ---------------------------------------------------------------------------
-# Let us define $R^{\alpha,l}_j$ as
-# $t^{\alpha,l}_j - \operatorname{Proj}^{\alpha}_{2j+2l-1}(t^{\alpha,l}_j)$.
-# For all integers $r$ between $0$ and $l$ we compute the ratio between
+# Let us define $N^l_j$ and $R^{\alpha,l}_j$ as above. For all integers $r$
+# between $0$ and $l$ we compute the ratio between
 # $| R^{\alpha,l}_j |_{\mathrm{W}^{r,2}_{\rho^\alpha}(B^2)}^2$
 # and
 # $| t^{\alpha,k}_j |_{\mathrm{W}^{l,2}_{\rho^\alpha}(B^2)}^2$
