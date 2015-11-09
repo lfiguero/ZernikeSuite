@@ -44,7 +44,7 @@ for α in list_of_α
 	savefig("output/cst" * @sprintf("%03d", figcount) * ".eps")
 	# Computation of empirical rates and export of part of a LaTeX tabular
 	ER = zeros(size(ratios))
-	ER[1,:] = Float64(NaN)
+	ER[1,:] = convert(Float64, Nan)
 	for k = 1:size(ratios, 2)
 	    ER[2:end,k] = empiricalRate(Nlj, ratios[:,k])
 	end
