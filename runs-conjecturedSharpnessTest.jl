@@ -17,7 +17,7 @@ for α in list_of_α
     for l in 1:max_l
 	jarray = l + 2.^(1:number_of_sequence_members)
 	ratios = conjecturedSharpnessTest(α, l, jarray)
-	expectedRates = [-l, -1/2 + 2*(1:l) - l]
+	expectedRates = [-l; -1/2 + 2*(1:l) - l]
 	Nlj = 2jarray+2l-1
 	# Plotting
 	figure(figsize=(6,3))
@@ -44,7 +44,7 @@ for α in list_of_α
 	savefig("output/cst" * @sprintf("%03d", figcount) * ".eps")
 	# Computation of empirical rates and export of part of a LaTeX tabular
 	ER = zeros(size(ratios))
-	ER[1,:] = nan(Float64)
+	ER[1,:] = Float64(NaN)
 	for k = 1:size(ratios, 2)
 	    ER[2:end,k] = empiricalRate(Nlj, ratios[:,k])
 	end

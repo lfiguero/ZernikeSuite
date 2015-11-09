@@ -1,3 +1,4 @@
+include("ZernikeSuite.jl")
 using ZernikeSuite
 
 function pochhammer(x::Float64, k::Integer)

@@ -1,5 +1,7 @@
 module ZernikeSuite
 
+import Base: +, -, *, /
+
 export ZFun, dzs, dzp, dx, dy, proj, wip, w_sobolev_sq_sn, w_nc_sobolev_sq_sn, all_w_sobolev_sq_sn, all_w_nc_sobolev_sq_sn, ZernikePoly
 
 function isPolySpaceDim(l::Integer)
@@ -80,12 +82,12 @@ function raise(f::ZFun)
     retc = zeros(Complex128, size(f.coefficients))
     for k = 0:f.degree
 	krange = positionRange(k)
-	i = [0:k]
+	i = collect(0:k)
 	Adiag = (i+f.α+1) .* (k-i+f.α+1) ./ (k+f.α+1) / (f.α+1)
 	v = f.coefficients[krange] .* Adiag
 	if k < f.degree-1
 	    kplustworange = positionRange(k+2)
-	    i = [1:(k+1)]
+	    i = collect(1:(k+1))
 	    Bdiag = i .* (k+2-i) ./ (k+f.α+3) / (f.α+1)
 	    v = v - f.coefficients[kplustworange][2:k+2] .* Bdiag
 	end
@@ -102,12 +104,12 @@ function lower(f::ZFun)
     retc = zeros(Complex128, size(f.coefficients))
     for k = f.degree:-1:0
 	krange = positionRange(k)
-	i = [0:k]
+	i = collect(0:k)
 	Adiag = (i+f.α) .* (k-i+f.α) ./ (k+f.α) / f.α
 	rhs = f.coefficients[krange]
 	if k < f.degree-1
 	    kplustworange = positionRange(k+2)
-	    i = [1:(k+1)]
+	    i = collect(1:(k+1))
 	    Bdiag = i .* (k+2-i) ./ (k+f.α+2) / f.α
 	    rhs = rhs + retc[kplustworange][2:k+2] .* Bdiag
 	end
@@ -128,7 +130,7 @@ function dzsShift(f::ZFun)
     for k = 1:f.degree
 	krange = positionRange(k)
 	kminusonerange = positionRange(k-1)
-	i = [0:k-1]
+	i = collect(0:k-1)
 	v = f.coefficients[krange][1:k] .* (i+f.α+1) .* (k-i) / (f.α+1)
 	retc[kminusonerange] = v
     end
@@ -146,7 +148,7 @@ function dzpShift(f::ZFun)
     for k = 1:f.degree
 	krange = positionRange(k)
 	kminusonerange = positionRange(k-1)
-	i = [1:k]
+	i = collect(1:k)
 	v = f.coefficients[krange][2:k+1] .* (k-i+f.α+1) .* i / (f.α+1)
 	retc[kminusonerange] = v
     end
