@@ -24,3 +24,8 @@ In that same code the utilities in `ZernikeSuite.jl` are used to numerically com
 
 In `runs-knownSharpnessTest.jl` and `runs-conjecturedSharpnessTest.jl` there are test runs of the numerics of both knowledge regimes; when these codes are run (for example, by introducing `include(runs-knownSharpnessTest.jl` in Julia's interactive prompt) plots and parts of LaTeX tabulars with results are created in the `output` folder.
 
+## How to run
+
+Clone this repository (or use GitHub's *Download ZIP* button) and in the folder where the contents were stored run an interactive session of Julia and type `include("runs-knownSharpnessTest.jl")` or `include("runs-conjecturedSharpnessTest.jl")` (just one of them per session because their code import mechanisms collide).
+Figures and pasteable portions of LaTeX tables should be dumped to the `output` subfolder.
+
