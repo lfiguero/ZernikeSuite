@@ -6,7 +6,7 @@ switch_backend("agg") # We just want to export EPS files
 conjecturedSharpnessTest(0.0, 2, 2:5);
 list_of_α = [-0.99, 0.0, 9.9]
 max_l = 3
-number_of_sequence_members = 11
+number_of_sequence_members = 12
 figcount = 0
 colors = ["k", "b", "r", "g", "m"]
 markers = ["o", "s", "^", "*", "D", "v", "h"]
