@@ -1,18 +1,26 @@
 include("../ZernikeSuite.jl")
 
-col = (α,n) -> [ZernikeSuite.ZernikePoly(α+1, i, n-i) for i=0:n];
-ratio = f -> (fshifted = ZernikeSuite.lower(f); real(ZernikeSuite.wip(fshifted,fshifted)/ZernikeSuite.wip(f,f)));
+col = (α,j,n) -> [ZernikeSuite.ZernikePoly(α+j, i, n-i) for i=0:n];
 
-function randomguy(α::Real, n::Integer)
-    bf = col(α,n);
+function ratio(f::ZernikeSuite.ZFun, j::Integer)
+    fshifted = ZernikeSuite.lower(f)
+    for i = 2:j
+	fshifted = ZernikeSuite.lower(fshifted)
+    end
+    real(ZernikeSuite.wip(fshifted,fshifted)/ZernikeSuite.wip(f,f))
+end
+
+function randomguy(α::Real, j::Integer, n::Integer)
+    bf = col(α,j,n);
     v = randn(n+1)+im*randn(n+1);
     reduce(+, map(*, v, bf))
 end
 
-function randomratio(α::Real, n::Integer)
-    randomOP = randomguy(α,n);
-    ratio(randomOP)
+function randomratio(α::Real, j::Integer, n::Integer)
+    randomOP = randomguy(α,j,n);
+    ratio(randomOP, j)
 end
 
-maxratio = (α,n) -> maximum(map(ratio, col(α,n)));
+maxratio = (α,j,n) -> maximum(map(g->ratio(g,j), col(α,j,n)));
+# So far I only know the formula for the j = 1 case
 myformula = (α,n) -> (n+1)/(α+1) + 1;
