@@ -1,4 +1,4 @@
-include("ZernikeSuite.jl")
+include("../ZernikeSuite.jl")
 
 col = (α,n) -> [ZernikeSuite.ZernikePoly(α+1, i, n-i) for i=0:n];
 ratio = f -> (fshifted = ZernikeSuite.lower(f); real(ZernikeSuite.wip(fshifted,fshifted)/ZernikeSuite.wip(f,f)));

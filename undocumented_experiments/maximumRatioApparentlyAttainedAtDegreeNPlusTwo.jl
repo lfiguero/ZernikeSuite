@@ -9,7 +9,7 @@
 # operator. As expected, the maximum is 0 for k = 0. Interestingly, the results
 # suggest that the maximum of that ratio among all of H^1_w is essentially (or
 # actually) attained with k = 2 already.
-include("ZernikeSuite.jl")
+include("../ZernikeSuite.jl")
 using ZernikeSuite
 
 α = 4.5
