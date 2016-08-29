@@ -1,6 +1,6 @@
 using PyPlot
 include("rateAttainingSequences.jl")
-switch_backend("agg") # We just want to export EPS files
+pygui(false) # We just want to export EPS files
 
 # Run a small instance of the main program so Julia compiles it
 conjecturedSharpnessTest(0.0, 2, 2:5);
