@@ -2,7 +2,7 @@ module ZernikeSuite
 
 import Base: +, -, *, /
 
-export ZFun, dzs, dzp, dx, dy, proj, wip, w_sobolev_sq_sn, w_nc_sobolev_sq_sn, all_w_sobolev_sq_sn, all_w_nc_sobolev_sq_sn, ZernikePoly
+export ZFun, dzs, dzp, dx, dy, dθ, proj, wip, w_sobolev_sq_sn, w_nc_sobolev_sq_sn, all_w_sobolev_sq_sn, all_w_nc_sobolev_sq_sn, ZernikePoly
 
 function isPolySpaceDim(l::Integer)
     # Given l returns a Boolean and an integer; the Boolean is set to true if l
@@ -160,7 +160,20 @@ dzs(f::ZFun) = lower(dzsShift(f))
 dzp(f::ZFun) = lower(dzpShift(f))
 dx(f::ZFun) = (dzs(f) + dzp(f))
 dy(f::ZFun) = (dzs(f) - dzp(f)) / (im)
-for op = (:dzs, :dzp, :dx, :dy)
+function dθ(f::ZFun)
+    # Angular derivative
+    retc = zeros(Complex128, div((f.degree+1)*(f.degree+2),2))
+    pos = 1
+    for k = 0:f.degree
+	for i = 0:k
+	    retc[pos] = im*(2*i-k)*f.coefficients[pos]
+	    pos = pos+1
+	end
+    end
+    ZFun(f.α, f.degree, retc)
+end
+
+for op = (:dzs, :dzp, :dx, :dy, :dθ)
     @eval begin
 	function ($op)(f::ZFun, k::Integer)
 	    @assert k >= 0
