@@ -8,16 +8,26 @@ end
 
 function bf(f::ZFun, g::ZFun)
     @assert f.α == g.α
-    wip(ZernikeSuite.raise(dx(dx(f))), ZernikeSuite.raise(dx(dx(g)))) + wip(ZernikeSuite.raise(dx(dy(f))), ZernikeSuite.raise(dx(dy(g)))) + wip(ZernikeSuite.raise(dy(dx(f))), ZernikeSuite.raise(dy(dx(g)))) + wip(ZernikeSuite.raise(dy(dy(f))), ZernikeSuite.raise(dy(dy(g)))) + wip(dθ(dx(f)), dθ(dx(g))) + wip(dθ(dy(f)), dθ(dy(g)))
+    ZRaise = ZernikeSuite.raise
+    dxxf = ZRaise(dx(dx(f)))
+    dxyf = ZRaise(dx(dy(f)))
+    dyxf = ZRaise(dy(dx(f)))
+    dyyf = ZRaise(dy(dy(f)))
+    dxxg = ZRaise(dx(dx(g)))
+    dxyg = ZRaise(dx(dy(g)))
+    dyxg = ZRaise(dy(dx(g)))
+    dyyg = ZRaise(dy(dy(g)))
+    wip(dxxf,dxxg) + wip(dxyf,dxyg) + wip(dyxf,dyxg) + wip(dyyf,dyyg) + wip(dθ(dx(f)), dθ(dx(g))) + wip(dθ(dy(f)), dθ(dy(g)))
 end
 
 function SturmLiouvilleTest(α::Real, maxdeg::Integer)
     @assert α > -1
     @assert maxdeg ≥ 0
-    protobasis = [ZernikePoly(α, i, k-i) for k in 0:maxdeg for i in 0:k]
-    dim = length(protobasis)
+    # We start with basis which is weighted L²-orthogonal
+    basis = [ZernikePoly(α, i, k-i) for k in 0:maxdeg for i in 0:k]
+    dim = length(basis)
+    # We turn the basis into a weighted Sobolev-orthogonal one via a
     # Gram–Schmidt process
-    basis = protobasis
     for i = 1:dim
 	for j = 1:i-1
 	    basis[i] = basis[i] - sip(basis[i], basis[j]) * basis[j]
@@ -32,8 +42,8 @@ function SturmLiouvilleTest(α::Real, maxdeg::Integer)
 	    B[i,j] = sip(basis[i], basis[j])
 	end
     end
-    bf_orthogonality_test = norm(A-diagm(diag(A)))
-    sip_orthogonality_test = norm(B-diagm(diag(B)))
+    bf_orthogonality_test = norm(A-diagm(diag(A)))/norm(A)
+    sip_orthogonality_test = norm(B-diagm(diag(B)))/norm(B)
     eigenvalues = diag(A) ./ diag(B)
     return bf_orthogonality_test, sip_orthogonality_test, eigenvalues
 end
