@@ -189,6 +189,9 @@ end
 # Weighted L^2 projection of a ZFun to the spaces of polynomials of degree
 # lower than or equal to a fixed degree
 function proj(f::ZFun, d::Integer)
+    if d < 0
+	return ZFun(f.α, 0, [0.0])
+    end
     ed = min(f.degree, d)
     ZFun(f.α, ed, f.coefficients[1:div((ed+1)*(ed+2),2)])
 end
