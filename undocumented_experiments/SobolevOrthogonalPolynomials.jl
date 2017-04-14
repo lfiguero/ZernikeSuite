@@ -45,5 +45,5 @@ function SturmLiouvilleTest(α::Real, maxdeg::Integer)
     bf_orthogonality_test = norm(A-diagm(diag(A)))/norm(A)
     sip_orthogonality_test = norm(B-diagm(diag(B)))/norm(B)
     eigenvalues = diag(A) ./ diag(B)
-    return bf_orthogonality_test, sip_orthogonality_test, eigenvalues
+    return bf_orthogonality_test, sip_orthogonality_test, basis, eigenvalues
 end
