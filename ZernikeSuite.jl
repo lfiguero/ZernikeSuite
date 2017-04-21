@@ -14,6 +14,8 @@ function isPolySpaceDim(l::Integer)
     2*l == (cn+1)*(cn+2), cn
 end
 
+polyDim(deg::Integer) = (deg+1)*(deg+2)÷2    
+
 # ZFun type and constructors
 type ZFun
     α::Real
@@ -21,7 +23,7 @@ type ZFun
     coefficients::Vector{Complex128}
     function ZFun(α, degree, coefficients)
 	@assert α > -1
-	2*length(coefficients)==(degree+1)*(degree+2) ? new(α, degree, coefficients) : error("length(coefficients) should be div((degree+1)*(degree+2),2)")
+	2*length(coefficients)==(degree+1)*(degree+2) ? new(α, degree, coefficients) : error("length(coefficients) should be (degree+1)*(degree+2)÷2")
     end
 end
 
@@ -30,7 +32,7 @@ function ZFun{T<:Number}(α::Real, coefficients::Vector{T})
     if b
 	newcoefficients = coefficients
     else
-	cl = div((n+1)*(n+2),2)
+	cl = polyDim(n)
 	newcoefficients = zeros(Complex128, cl)
 	newcoefficients[1:length(coefficients)] = coefficients
     end
@@ -73,7 +75,7 @@ end
 -(a::Number, f::ZFun) = a + (-f)
 
 # Position range of coefficients of given degree
-positionRange(deg::Integer) = (aux=div(deg*(deg+1),2)+1; aux:aux+deg)
+positionRange(deg::Integer) = (polyDim(deg-1)+1):polyDim(deg)
 
 # Raise parameter by one
 function raise(f::ZFun)
@@ -126,7 +128,7 @@ function dzsShift(f::ZFun)
 	return ZFun(reta, 0, [0.0])
     end
     retd = f.degree - 1
-    retc = zeros(Complex128, div((retd+1)*(retd+2),2))
+    retc = zeros(Complex128, polyDim(retd))
     for k = 1:f.degree
 	krange = positionRange(k)
 	kminusonerange = positionRange(k-1)
@@ -144,7 +146,7 @@ function dzpShift(f::ZFun)
 	return ZFun(reta, 0, [0.0])
     end
     retd = f.degree - 1
-    retc = zeros(Complex128, div((retd+1)*(retd+2),2))
+    retc = zeros(Complex128, polyDim(retd))
     for k = 1:f.degree
 	krange = positionRange(k)
 	kminusonerange = positionRange(k-1)
@@ -162,7 +164,7 @@ dx(f::ZFun) = (dzs(f) + dzp(f))
 dy(f::ZFun) = (dzs(f) - dzp(f)) / (im)
 function dθ(f::ZFun)
     # Angular derivative
-    retc = zeros(Complex128, div((f.degree+1)*(f.degree+2),2))
+    retc = zeros(Complex128, polyDim(f.degree))
     pos = 1
     for k = 0:f.degree
 	for i = 0:k
@@ -193,7 +195,7 @@ function proj(f::ZFun, d::Integer)
 	return ZFun(f.α, 0, [0.0])
     end
     ed = min(f.degree, d)
-    ZFun(f.α, ed, f.coefficients[1:div((ed+1)*(ed+2),2)])
+    ZFun(f.α, ed, f.coefficients[1:polyDim(ed)])
 end
 
 # Squared weighted L^2 norms of the Zernike basis functions
@@ -201,7 +203,7 @@ function h(α::Real, maxdeg::Integer)
     # In order to avoid under/overflows we will compute the norms recursively
     # instead of using gamma function evaluations
     @assert α > -1 && maxdeg >= 0
-    out = zeros(Float64, div((maxdeg+1)*(maxdeg+2),2))
+    out = zeros(Float64, polyDim(maxdeg))
     out[1] = pi
     for k = 0:maxdeg-1
 	for i = 0:div(k,2)
@@ -221,7 +223,7 @@ end
 function wip(f::ZFun, g::ZFun)
     @assert f.α == g.α
     md = min(f.degree, g.degree)
-    l = div((md+1)*(md+2),2)
+    l = polyDim(md)
     wgth = h(f.α, md)
     (g.coefficients[1:l]'*(wgth.*f.coefficients[1:l]))[1]
 end
@@ -312,8 +314,8 @@ end
 # Zernike polynomials
 function ZernikePoly(α::Real, m::Integer, n::Integer)
     retd = m+n;
-    retc = zeros(Complex128, div((retd+1)*(retd+2),2))
-    retc[div(retd*(retd+1),2)+1+m] = 1.0
+    retc = zeros(Complex128, polyDim(retd))
+    retc[polyDim(retd-1)+1+m] = 1.0
     ZFun(α, retd, retc)
 end
 
