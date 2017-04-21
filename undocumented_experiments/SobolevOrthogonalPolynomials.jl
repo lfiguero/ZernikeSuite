@@ -20,6 +20,22 @@ function bf(f::ZFun, g::ZFun)
     wip(dxxf,dxxg) + wip(dxyf,dxyg) + wip(dyxf,dyxg) + wip(dyyf,dyyg) + wip(dθ(dx(f)), dθ(dx(g))) + wip(dθ(dy(f)), dθ(dy(g)))
 end
 
+function recombine(coll::Array{ZernikeSuite.ZFun,1})
+    n = length(coll)
+    X = randn(n,n) + im*randn(n,n)
+    # We will recombine using matrix Q in order to preserve intra-degree
+    # orthogonality
+    Q, R = qr(X)
+    newcoll = Array{ZernikeSuite.ZFun}(n)
+    for i = 1:n
+	newcoll[i] = Q[i,1]*coll[1]
+	for j = 2:n
+	    newcoll[i] += Q[i,j]*coll[j]
+	end
+    end
+    newcoll
+end
+
 function SturmLiouvilleTest(α::Real, maxdeg::Integer)
     @assert α > -1
     @assert maxdeg ≥ 0
@@ -33,6 +49,11 @@ function SturmLiouvilleTest(α::Real, maxdeg::Integer)
 	    basis[i] = basis[i] - sip(basis[i], basis[j]) * basis[j]
 	end
 	basis[i] = basis[i]/sqrt(sip(basis[i], basis[i]))
+    end
+    # Intra-degree recombinations
+    for k = 0:maxdeg
+	rng = ZernikeSuite.positionRange(k)
+	basis[rng] = recombine(basis[rng])
     end
     A = Array{Complex128}(dim, dim)
     B = Array{Complex128}(dim, dim)
