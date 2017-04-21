@@ -47,3 +47,14 @@ function SturmLiouvilleTest(α::Real, maxdeg::Integer)
     eigenvalues = diag(A) ./ diag(B)
     return bf_orthogonality_test, sip_orthogonality_test, basis, eigenvalues
 end
+
+function relativeComponentWeight(f::ZFun)
+    weights = ZernikeSuite.h(f.α, f.degree)
+    out = zeros(Float64, f.degree+1)
+    for k = 0:f.degree
+	rng = ZernikeSuite.positionRange(k)
+	out[k+1] = real(dot(f.coefficients[rng], weights[rng].*f.coefficients[rng]))
+    end
+    out = sqrt(out/sum(out))
+end
+
