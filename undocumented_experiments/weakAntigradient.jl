@@ -3,7 +3,7 @@ using ZernikeSuite
 using PyPlot
 
 maxdeg = 10
-a = 0.0
+a = -0.559
 fullBasis = [ZernikePoly(a, m, deg-m) for deg in 0:maxdeg for m in 0:deg]
 dxFullBasis = [dx(f) for f in fullBasis]
 dyFullBasis = [dy(f) for f in fullBasis]
@@ -29,7 +29,7 @@ spy(KMat)
 grid("on")
 axis("tight")
 ax2 = subplot(1, 4, 2, sharex=ax1, sharey=ax1)
-spy(inv(KMat))
+spy(inv(KMat), precision=1e-14)
 grid("on")
 axis("tight")
 ax3 = subplot(1, 2, 2, sharey=ax1)
