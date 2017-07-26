@@ -36,7 +36,7 @@ function recombine(coll::Array{ZernikeSuite.ZFun,1})
     newcoll
 end
 
-function SturmLiouvilleTest(α::Real, maxdeg::Integer)
+function SturmLiouvilleTest(α::Real, maxdeg::Integer, normalizeFlag::Bool, recombineFlag::Bool)
     @assert α > -1
     @assert maxdeg ≥ 0
     # We start with basis which is weighted L²-orthogonal
@@ -44,16 +44,24 @@ function SturmLiouvilleTest(α::Real, maxdeg::Integer)
     dim = length(basis)
     # We turn the basis into a weighted Sobolev-orthogonal one via a
     # Gram–Schmidt process
+    squaredNorm = Array{Float64}(dim)
     for i = 1:dim
 	for j = 1:i-1
-	    basis[i] = basis[i] - sip(basis[i], basis[j]) * basis[j]
+		basis[i] = basis[i] - sip(basis[i], basis[j])/squaredNorm[j] * basis[j]
 	end
-	basis[i] = basis[i]/sqrt(sip(basis[i], basis[i]))
+	if normalizeFlag
+		basis[i] = basis[i]/sqrt(sip(basis[i],basis[i]))
+		squaredNorm[i] = 1.0
+	else
+		squaredNorm[i] = real(sip(basis[i], basis[i]))
+	end
     end
     # Intra-degree recombinations
-    for k = 0:maxdeg
-	rng = ZernikeSuite.positionRange(k)
-	basis[rng] = recombine(basis[rng])
+    if recombineFlag
+	    for k = 0:maxdeg
+		rng = ZernikeSuite.positionRange(k)
+		basis[rng] = recombine(basis[rng])
+	    end
     end
     A = Array{Complex128}(dim, dim)
     B = Array{Complex128}(dim, dim)
@@ -68,6 +76,8 @@ function SturmLiouvilleTest(α::Real, maxdeg::Integer)
     eigenvalues = diag(A) ./ diag(B)
     return bf_orthogonality_test, sip_orthogonality_test, basis, eigenvalues
 end
+
+SturmLiouvilleTest(α::Real, maxdeg::Integer) = SturmLiouvilleTest(α, maxdeg, false, false)
 
 function relativeComponentWeight(f::ZFun)
     weights = ZernikeSuite.h(f.α, f.degree)
