@@ -19,8 +19,7 @@ deltaN = 8
 # I want to find the maximal eigenvalue of
 # <p-Proj_N(p), q-Proj_N(q)>_1 = lambda * <p, q>_1
 # in Π^2_{N+d}, for d in {0, ..., deltaN}
-basis = [[ZernikePoly(α, i, deg-i) for i in 0:deg] for deg in 0:N+deltaN]
-basis = [basis...]
+basis = [ZernikePoly(α, i, deg-i) for deg in 0:N+deltaN for i in 0:deg]
 A = zeros(Complex128, (length(basis), length(basis)))
 B = zeros(Complex128, (length(basis), length(basis)))
 for j in 1:length(basis)
@@ -48,7 +47,7 @@ for j in 1:length(basis)
     end
 end
 
-for i in 0:deltaN
+for i in 1:deltaN
     Np = N + i
     spaceDim = div((Np+1)*(Np+2), 2)
     ew, ev, nconv, niter, nmult, res = eigs(A[1:spaceDim,1:spaceDim], B[1:spaceDim,1:spaceDim], nev=1, which=:LM)
