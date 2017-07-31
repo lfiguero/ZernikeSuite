@@ -2,7 +2,7 @@ module ZernikeSuite
 
 import Base: +, -, *, /
 
-export ZFun, dzs, dzp, dx, dy, dθ, proj, wip, w_sobolev_sq_sn, w_nc_sobolev_sq_sn, all_w_sobolev_sq_sn, all_w_nc_sobolev_sq_sn, ZernikePoly
+export ZFun, mzp, mzs, dzs, dzp, dx, dy, dθ, proj, wip, w_sobolev_sq_sn, w_nc_sobolev_sq_sn, all_w_sobolev_sq_sn, all_w_nc_sobolev_sq_sn, ZernikePoly
 
 function isPolySpaceDim(l::Integer)
     # Given l returns a Boolean and an integer; the Boolean is set to true if l
@@ -118,6 +118,44 @@ function lower(f::ZFun)
 	retc[krange] = rhs ./ Adiag
     end
     ZFun(reta, retd, retc)
+end
+
+function mzp(f::ZFun)
+	# Multiplication by plain z; i.e., x + im*y
+	retd = f.degree + 1
+	retc = zeros(Complex128, polyDim(retd))
+	c = 1
+	for k = 0:f.degree+1
+		for i = 0:k
+			if k≥1 && i≥1
+				retc[c] += (i+f.α)/(k+f.α)*f.coefficients[positionRange(k-1)[i]]
+			end
+			if k≤f.degree-1
+				retc[c] += (k+1-i)/(k+f.α+2)*f.coefficients[positionRange(k+1)[i+1]]
+			end
+			c = c+1
+		end
+	end
+	ZFun(f.α, retd, retc)
+end
+
+function mzs(f::ZFun)
+	# Multiplication by starred z; i.e., x - im*y
+	retd = f.degree + 1
+	retc = zeros(Complex128, polyDim(retd))
+	c = 1
+	for k = 0:f.degree+1
+		for i = 0:k
+			if k≥1 && i≤k-1
+				retc[c] += (k-i+f.α)/(k+f.α)*f.coefficients[positionRange(k-1)[i+1]]
+			end
+			if k≤f.degree-1
+				retc[c] += (i+1)/(k+f.α+2)*f.coefficients[positionRange(k+1)[i+2]]
+			end
+			c = c+1
+		end
+	end
+	ZFun(f.α, retd, retc)
 end
 
 # Differentiation with parameter shift
