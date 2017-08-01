@@ -2,7 +2,7 @@ module ZernikeSuite
 
 import Base: +, -, *, /
 
-export ZFun, mzp, mzs, dzs, dzp, dx, dy, dθ, proj, wip, w_sobolev_sq_sn, w_nc_sobolev_sq_sn, all_w_sobolev_sq_sn, all_w_nc_sobolev_sq_sn, ZernikePoly
+export ZFun, mzp, mzs, mx, my, dzs, dzp, dx, dy, dθ, proj, wip, w_sobolev_sq_sn, w_nc_sobolev_sq_sn, all_w_sobolev_sq_sn, all_w_nc_sobolev_sq_sn, ZernikePoly
 
 function isPolySpaceDim(l::Integer)
     # Given l returns a Boolean and an integer; the Boolean is set to true if l
@@ -157,6 +157,9 @@ function mzs(f::ZFun)
 	end
 	ZFun(f.α, retd, retc)
 end
+
+mx(f::ZFun) = (mzp(f)+mzs(f))/2.0
+my(f::ZFun) = (mzp(f)-mzs(f))/(2.0*im)
 
 # Differentiation with parameter shift
 function dzsShift(f::ZFun)
