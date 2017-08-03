@@ -3,21 +3,21 @@ using ZernikeSuite
 
 function sip(f::ZFun, g::ZFun)
     @assert f.α == g.α
-    wip(dx(f),dx(g)) + wip(dy(f),dy(g)) + wip(proj(f,0), proj(g,0))
+    2.0 * (wip(dzp(f),dzp(g)) + wip(dzs(f),dzs(g))) + wip(proj(f,0), proj(g,0))
 end
 
 function bf(f::ZFun, g::ZFun)
     @assert f.α == g.α
     ZRaise = ZernikeSuite.raise
-    dxxf = ZRaise(dx(dx(f)))
-    dxyf = ZRaise(dx(dy(f)))
-    dyxf = ZRaise(dy(dx(f)))
-    dyyf = ZRaise(dy(dy(f)))
-    dxxg = ZRaise(dx(dx(g)))
-    dxyg = ZRaise(dx(dy(g)))
-    dyxg = ZRaise(dy(dx(g)))
-    dyyg = ZRaise(dy(dy(g)))
-    wip(dxxf,dxxg) + wip(dxyf,dxyg) + wip(dyxf,dyxg) + wip(dyyf,dyyg) + wip(dθ(dx(f)), dθ(dx(g))) + wip(dθ(dy(f)), dθ(dy(g)))
+    dzpzpf = ZRaise(dzp(dzp(f)))
+    dzpzsf = ZRaise(dzp(dzs(f)))
+    dzszpf = ZRaise(dzs(dzp(f)))
+    dzszsf = ZRaise(dzs(dzs(f)))
+    dzpzpg = ZRaise(dzp(dzp(g)))
+    dzpzsg = ZRaise(dzp(dzs(g)))
+    dzszpg = ZRaise(dzs(dzp(g)))
+    dzszsg = ZRaise(dzs(dzs(g)))
+    4.0 * (wip(dzpzpf,dzpzpg) + wip(dzpzsf,dzpzsg) + wip(dzszpf,dzszpg) + wip(dzszsf,dzszsg)) + 2.0 * (wip(dθ(dzp(f)), dθ(dzp(g))) + wip(dθ(dzs(f)), dθ(dzs(g))))
 end
 
 function recombine(coll::Array{ZernikeSuite.ZFun,1})
