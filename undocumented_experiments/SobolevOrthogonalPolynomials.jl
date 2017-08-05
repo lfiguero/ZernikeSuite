@@ -92,10 +92,12 @@ function relativeComponentWeight(f::ZFun)
     out = sqrt(out/sum(out))
 end
 
-function coefficientFormulaSearch(α::Real, maxdeg::Integer)
+function coefficientFormulaTest(α::Real, maxdeg::Integer)
 	basis = SOP(α, maxdeg)
-	w = -[basis[ZernikeSuite.positionRange(deg)[i+1]].coefficients[ZernikeSuite.positionRange(deg-2)[i]] for deg in 3:maxdeg for i in 1:deg-1]
+	w = real(-[basis[ZernikeSuite.positionRange(deg)[i+1]].coefficients[ZernikeSuite.positionRange(deg-2)[i]] for deg in 3:maxdeg for i in 1:deg-1])
 	d = [deg for deg in 3:maxdeg for i in 1:deg-1]
 	md = [abs(2*i-deg) for deg in 3:maxdeg for i in 1:deg-1]
-	return (w, d, md)
+	modelVal = (d-md).*(d+md)./(d-md+2*α)./(d+md+2*α)
+	relRes = norm(w-modelVal)/norm(w)
+	return relRes
 end
