@@ -101,3 +101,31 @@ function coefficientFormulaTest(α::Real, maxdeg::Integer)
 	relRes = norm(w-modelVal)/norm(w)
 	return relRes
 end
+
+# Collections which may span the Sobolev orthogonal polynomials which are
+# Sobolev orthogonal to harmonic polynomials
+function firstAugustTest(α::Real, deg::Integer)
+	bVαmo = [ZernikePoly(α, i, deg-1-i) for i in 0:deg-1]
+	collx = [dx(p)-mzp(mzs(dx(p)))-2*α*mx(p) for p in bVαmo]
+	colly = [dy(p)-mzp(mzs(dy(p)))-2*α*my(p) for p in bVαmo]
+	[collx;colly]
+end
+
+# Test of a possibly useful identity
+function tenthAugustTest(α::Real, m::Integer, n::Integer)
+	obj = ZernikeSuite.lower(ZernikePoly(α+1, m, n))
+	mbump(f::ZFun) = f - mzp(mzs(f))
+	xsqobj = mzp(mzs(obj))
+	dzsobj = dzs(obj)
+	dzpobj = dzp(obj)
+	oflapobj = dzp(dzsobj)
+	lhs1 = -(α+1)*((m+1)*xsqobj + obj - xsqobj) + m*mbump(mzs(dzsobj)) - (α+1)*mbump(mzp(dzpobj)) + mbump(mbump(oflapobj))
+	lhs2 = -(α+1)*((n+1)*xsqobj + obj - xsqobj) + n*mbump(mzp(dzpobj)) - (α+1)*mbump(mzs(dzsobj)) + mbump(mbump(oflapobj))
+	rhs1 = -(m+1)*(α+1)*ZernikePoly(α, m, n)
+	rhs2 = -(n+1)*(α+1)*ZernikePoly(α, m, n)
+	res1 = rhs1-lhs1
+	res2 = rhs2-lhs2
+	relErr1 = sqrt(real(wip(res1,res1))/real(wip(rhs1,rhs1)))
+	relErr2 = sqrt(real(wip(res2,res2))/real(wip(rhs2,rhs2)))
+	return relErr1, relErr2
+end
