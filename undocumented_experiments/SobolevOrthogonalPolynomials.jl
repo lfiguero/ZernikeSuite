@@ -129,3 +129,18 @@ function tenthAugustTest(α::Real, m::Integer, n::Integer)
 	relErr2 = sqrt(real(wip(res2,res2))/real(wip(rhs2,rhs2)))
 	return relErr1, relErr2
 end
+
+# Test of another possibly useful identity
+function seventeenthAugustTest(α::Real, m::Integer, n::Integer)
+	obj = ZernikeSuite.lower(ZernikePoly(α+1, m, n))
+	mbump(f::ZFun) = f - mzp(mzs(f))
+	lhs1 = -m*(α+1)*mzp(mzs(obj)) - (α+2)*mbump(mzp(dzp(obj))) + m*mbump(obj + mzs(dzs(obj))) + mbump(mbump(dzs(dzp(obj))))
+	rhs1 = -m*(α+1)*ZernikePoly((α+1)-1, m, n)
+	res1 = rhs1 - lhs1
+	relErr1 = wip(res1,res1)==wip(rhs1,rhs1)==0.0?0.0:sqrt(real(wip(res1,res1))/real(wip(rhs1,rhs1)))
+	lhs2 = -n*(α+1)*mzp(mzs(obj)) - (α+2)*mbump(mzs(dzs(obj))) + n*mbump(obj + mzp(dzp(obj))) + mbump(mbump(dzs(dzp(obj))))
+	rhs2 = -n*(α+1)*ZernikePoly((α+1)-1, m, n)
+	res2 = rhs2 - lhs2
+	relErr2 = wip(res2,res2)==wip(rhs2,rhs2)==0.0?0.0:sqrt(real(wip(res2,res2))/real(wip(rhs2,rhs2)))
+	return relErr1, relErr2
+end
