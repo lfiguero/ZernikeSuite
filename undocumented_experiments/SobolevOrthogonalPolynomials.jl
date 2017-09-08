@@ -159,3 +159,93 @@ function eighteenthAugustTest(α::Real, m::Integer, n::Integer)
 	relErr2 = sqrt(real(wip(res2,res2))/real(wip(rhs2,rhs2)))
 	return relErr1, relErr2
 end
+
+# More tests
+function twentysecondAugustTest(α::Real, m::Integer, n::Integer)
+	obj = ZernikeSuite.lower(ZernikePoly(α+1, m-1, n-1))
+	mbump(f::ZFun) = f - mzp(mzs(f))
+	lhs = -2*α*(α+1)*mzp(mzs(obj)) + (2*m*n+α*(m+n))*mbump(obj) + α*mbump(mzs(dzs(obj))+mzp(dzp(obj)))
+	Q = ZernikePoly((α+1)-1, m, n) - m*n/(m+α)/(n+α)*ZernikePoly((α+1)-1, m-1, n-1)
+	rhs = -2*(α+1)*(m+α)*(n+α)/(m+n+α)*Q
+	res = rhs - lhs
+	relErr = sqrt(real(wip(res,res))/real(wip(rhs,rhs)))
+	return lhs, rhs, relErr
+end
+
+function OPSOPTestsA(α::Real, maxdeg::Integer)
+	OPBasis = [ZernikeSuite.lower(ZernikePoly(α+1, i, maxdeg-i)) for i in 0:maxdeg]
+	srand(0)
+	mat = randn(maxdeg+1,maxdeg+1) + im*randn(maxdeg+1,maxdeg+1)
+	OP = [sum(mat[i,:].*OPBasis) for i in 1:maxdeg+1]
+	mbump(f::ZFun) = f - mzp(mzs(f))
+	SOPp1 = [-2*2*(α+1)*mbump(p) for p in OP]
+	SOPp2 = [4*α*(α+1)*mzs(mzp(p)) for p in OP]
+	SOPp3 = [-4*(α+1)*mbump(mzs(dzs(p)) + mzp(dzp(p))) for p in OP]
+	SOPp4 = [4*mbump(mbump(dzs(dzp(p)))) for p in OP]
+	SOP = SOPp1 + SOPp2 + SOPp3 + SOPp4
+	lowerBasis = [ZernikePoly((α+1)-1, i, deg-i) for deg in 0:maxdeg+1 for i in 0:deg]
+	SOTestp1 = [sip(q, Mp) for q in lowerBasis, Mp in SOPp1]
+	SOTestp2 = [sip(q, Mp) for q in lowerBasis, Mp in SOPp2]
+	SOTestp3 = [sip(q, Mp) for q in lowerBasis, Mp in SOPp3]
+	SOTestp4 = [sip(q, Mp) for q in lowerBasis, Mp in SOPp4]
+	SOTest = [sip(q, Mp) for q in lowerBasis, Mp in SOP]
+	return SOTest
+end
+
+function OPSOPTestsB(α::Real, maxdeg::Integer)
+	OPBasis = [ZernikeSuite.lower(ZernikePoly(α+1, i, maxdeg-i)) for i in 0:maxdeg]
+	srand(0)
+	mat = randn(maxdeg+1,maxdeg+1) + im*randn(maxdeg+1,maxdeg+1)
+	OP = [sum(mat[i,:].*OPBasis) for i in 1:maxdeg+1]
+	mbump(f::ZFun) = f - mzp(mzs(f))
+	x = mx(ZFun((α+1)-1, 0, [1.0]))
+	y = mx(ZFun((α+1)-1, 0, [1.0]))
+	gSOPp1 = [4*2*(α+1)*[mx(p), my(p)] for p in OP]
+	gSOPp2 = [8*α*(α+1)*[mx(p), my(p)] for p in OP]
+	gSOPp3 = [-2*2*(α+1)*[mbump(dx(p)), mbump(dy(p))] for p in OP]
+	gSOPp4 = [4*α*(α+1)*[mzs(mzp(dx(p))), mzs(mzp(dy(p)))] for p in OP]
+	gSOPp5 = [8*(α+1)*[mx(mzs(dzs(p))+mzp(dzp(p))), my(mzs(dzs(p))+mzp(dzp(p)))] for p in OP]
+	gSOPp6 = [-4*(α+1)*[mbump(dx(p)), mbump(dy(p))] for p in OP]
+	gSOPp7 = [-4*(α+1)*[mbump(mx(dx(dx(p)))+my(dy(dx(p)))), mbump(mx(dx(dy(p)))+my(dy(dy(p))))] for p in OP]
+	gSOPp8 = [-4*[mx(mbump(4*dzs(dzp(p)))), my(mbump(4*dzs(dzp(p))))] for p in OP]
+	gSOPp9 = [[mbump(mbump(dx(4*dzs(dzp(p))))), mbump(mbump(dy(4*dzs(dzp(p)))))] for p in OP]
+	gLowerBasis = [(q=ZernikePoly((α+1)-1, i, deg-i);[dx(q), dy(q)]) for deg in 0:maxdeg+1 for i in 0:deg]
+	SOTestp1 = [wip(vq[1], vp[1])+wip(vq[2], vp[2]) for vq in gLowerBasis, vp in gSOPp1]
+	SOTestp2 = [wip(vq[1], vp[1])+wip(vq[2], vp[2]) for vq in gLowerBasis, vp in gSOPp2]
+	SOTestp3 = [wip(vq[1], vp[1])+wip(vq[2], vp[2]) for vq in gLowerBasis, vp in gSOPp3]
+	SOTestp4 = [wip(vq[1], vp[1])+wip(vq[2], vp[2]) for vq in gLowerBasis, vp in gSOPp4]
+	SOTestp5 = [wip(vq[1], vp[1])+wip(vq[2], vp[2]) for vq in gLowerBasis, vp in gSOPp5]
+	SOTestp6 = [wip(vq[1], vp[1])+wip(vq[2], vp[2]) for vq in gLowerBasis, vp in gSOPp6]
+	SOTestp7 = [wip(vq[1], vp[1])+wip(vq[2], vp[2]) for vq in gLowerBasis, vp in gSOPp7]
+	SOTestp8 = [wip(vq[1], vp[1])+wip(vq[2], vp[2]) for vq in gLowerBasis, vp in gSOPp8]
+	SOTestp9 = [wip(vq[1], vp[1])+wip(vq[2], vp[2]) for vq in gLowerBasis, vp in gSOPp9]
+	# I found that this matrix has rank 4 = 9-5
+	return [SOTestp1[:] SOTestp2[:] SOTestp3[:] SOTestp4[:] SOTestp5[:] SOTestp6[:] SOTestp7[:] SOTestp8[:] SOTestp9[:]]
+	# I found that this matrix has rank 4 = 7-3
+	#return [SOTestp1[:]+SOTestp2[:] SOTestp3[:]+SOTestp6[:] SOTestp4[:] SOTestp5[:] SOTestp7[:] SOTestp8[:] SOTestp9[:]]
+end
+
+function OPSOPTestsC(α::Real, maxdeg::Integer)
+	OPBasis = [ZernikeSuite.lower(ZernikePoly(α+1, i, maxdeg-i)) for i in 0:maxdeg]
+	srand(0)
+	mat = randn(maxdeg+1,maxdeg+1) + im*randn(maxdeg+1,maxdeg+1)
+	OP = [sum(mat[i,:].*OPBasis) for i in 1:maxdeg+1]
+	mbump(f::ZFun) = f - mzp(mzs(f))
+	x = mx(ZFun((α+1)-1, 0, [1.0]))
+	y = mx(ZFun((α+1)-1, 0, [1.0]))
+	gSOPp1 = [-(2*2*α+4)*[mbump(dx(p)), mbump(dy(p))] for p in OP]
+	gSOPp2 = [4*α*(α+1)*[mzs(mzp(dx(p))), mzs(mzp(dy(p)))] for p in OP]
+	gSOPp3 = [8*(α+1)*[mx(mzs(dzs(p))+mzp(dzp(p))), my(mzs(dzs(p))+mzp(dzp(p)))] for p in OP]
+	gSOPp4 = [-4*(α+1)*[mbump(mx(dx(dx(p)))+my(dy(dx(p)))), mbump(mx(dx(dy(p)))+my(dy(dy(p))))] for p in OP]
+	gSOPp5 = [-4*[mx(mbump(4*dzs(dzp(p)))), my(mbump(4*dzs(dzp(p))))] for p in OP]
+	gSOPp6 = [[mbump(mbump(dx(4*dzs(dzp(p))))), mbump(mbump(dy(4*dzs(dzp(p)))))] for p in OP]
+	gLowerBasis = [(q=ZernikePoly((α+1)-1, i, deg-i);[dx(q), dy(q)]) for deg in 0:maxdeg+1 for i in 0:deg]
+	SOTestp1 = [wip(vq[1], vp[1])+wip(vq[2], vp[2]) for vq in gLowerBasis, vp in gSOPp1]
+	SOTestp2 = [wip(vq[1], vp[1])+wip(vq[2], vp[2]) for vq in gLowerBasis, vp in gSOPp2]
+	SOTestp3 = [wip(vq[1], vp[1])+wip(vq[2], vp[2]) for vq in gLowerBasis, vp in gSOPp3]
+	SOTestp4 = [wip(vq[1], vp[1])+wip(vq[2], vp[2]) for vq in gLowerBasis, vp in gSOPp4]
+	SOTestp5 = [wip(vq[1], vp[1])+wip(vq[2], vp[2]) for vq in gLowerBasis, vp in gSOPp5]
+	SOTestp6 = [wip(vq[1], vp[1])+wip(vq[2], vp[2]) for vq in gLowerBasis, vp in gSOPp6]
+	# I found that this matrix has rank 4 = 6-2
+	return [SOTestp1[:] SOTestp2[:] SOTestp3[:] SOTestp4[:] SOTestp5[:] SOTestp6[:]]
+end
