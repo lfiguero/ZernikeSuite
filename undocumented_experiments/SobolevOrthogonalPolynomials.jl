@@ -358,3 +358,25 @@ function OPSOPTestsC6(α::Real, maxdeg::Integer)
 	#                                                                                              vanishes
 	return [SOTestp1[:] SOTestp2[:] SOTestp3[:] SOTestp4[:] SOTestp5[:] IBP6a[:] IBP6b[:] IBP6c[:] IBP6d[:]]
 end
+
+function fifteenthSeptemberTest(α::Real, maxdeg::Integer, j::Integer)
+	mbump(f::ZFun) = f - mzp(mzs(f))
+	OPBasis = [ZernikePoly(α, i, maxdeg-i) for i in 0:maxdeg]
+	srand(0)
+	mat = randn(maxdeg+1,maxdeg+1) + im*randn(maxdeg+1,maxdeg+1)
+	OP = [sum(mat[i,:].*OPBasis) for i in 1:maxdeg+1]
+	@assert j==1 or j==2
+	mj = (j==1)?mx:my
+	dj = (j==1)?dx:dy
+	ve = [0;0]; ve[j] = 1.0
+	lowerBasis = [ZernikePoly(α, i, deg-i) for deg in 0:maxdeg-1 for i in 0:deg]
+	vLowerBasis = [[q1, q2] for q1 in lowerBasis, q2 in lowerBasis]
+	term1 = [-2*(wip(vq[1], mx(dj(p)))+wip(vq[2], my(dj(p)))) for vq in vLowerBasis, p in OP]
+	term2 = [wip(vq[1],mbump(dx(dj(p))))+wip(vq[2],mbump(dy(dj(p)))) for vq in vLowerBasis, p in OP]
+	term3 = [-2*α*(wip(vq[1], ve[1]*p)+wip(vq[2], ve[2]*p)) for vq in vLowerBasis, p in OP]
+	term4 = [-2*α*(wip(vq[1], mj(dx(p)))+wip(vq[2], mj(dy(p)))) for vq in vLowerBasis, p in OP]
+	mappedOP = [mbump(dj(p))-2*α*mj(p) for p in OP]
+	full = [wip(vq[1], dx(P)) + wip(vq[2], dy(P)) for vq in vLowerBasis, P in mappedOP]
+	return [term1[:] term2[:] term3[:] term4[:]], full
+end
+
