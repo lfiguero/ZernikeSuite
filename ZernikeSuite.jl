@@ -46,7 +46,7 @@ end
 for op = (:+, :-)
     @eval begin
 	function ($op)(f::ZFun, g::ZFun)
-	    @assert f.α == g.α
+	    @assert (f.α == g.α == 0) || abs(f.α-g.α)/min(abs(f.α),abs(g.α)) < 10*eps()
 	    fl = length(f.coefficients)
 	    gl = length(g.coefficients)
 	    retl = max(fl, gl)
@@ -262,7 +262,7 @@ end
 
 # Weighted L^2 inner product
 function wip(f::ZFun, g::ZFun)
-    @assert f.α == g.α
+    @assert (f.α == g.α == 0) || abs(f.α-g.α)/min(abs(f.α),abs(g.α)) < 10*eps()
     md = min(f.degree, g.degree)
     l = polyDim(md)
     wgth = h(f.α, md)
