@@ -111,10 +111,11 @@ function firstAugustTest(α::Real, deg::Integer)
 	[collx;colly]
 end
 
+mbump(f::ZFun) = f - mzp(mzs(f))
+
 # Test of a possibly useful identity
 function tenthAugustTest(α::Real, m::Integer, n::Integer)
 	obj = ZernikeSuite.lower(ZernikePoly(α+1, m, n))
-	mbump(f::ZFun) = f - mzp(mzs(f))
 	xsqobj = mzp(mzs(obj))
 	dzsobj = dzs(obj)
 	dzpobj = dzp(obj)
@@ -133,7 +134,6 @@ end
 # Test of another possibly useful identity
 function seventeenthAugustTest(α::Real, m::Integer, n::Integer)
 	obj = ZernikeSuite.lower(ZernikePoly(α+1, m, n))
-	mbump(f::ZFun) = f - mzp(mzs(f))
 	lhs1 = -m*(α+1)*mzp(mzs(obj)) - (α+2)*mbump(mzp(dzp(obj))) + m*mbump(obj + mzs(dzs(obj))) + mbump(mbump(dzs(dzp(obj))))
 	rhs1 = -m*(α+1)*ZernikePoly((α+1)-1, m, n)
 	res1 = rhs1 - lhs1
@@ -148,7 +148,6 @@ end
 # Yet another test of a possibly useful identity
 function eighteenthAugustTest(α::Real, m::Integer, n::Integer)
 	obj = ZernikeSuite.lower(ZernikePoly(α+1, m, n))
-	mbump(f::ZFun) = f - mzp(mzs(f))
 	lhs1 = (α+1)*mzs(mzp(obj)) + (m+α+1)*mbump(obj) - mbump(mzp(dzp(obj)))
 	rhs1 = (α+1)*ZernikePoly((α+1)-1, m, n)
 	res1 = rhs1 - lhs1
@@ -163,7 +162,6 @@ end
 # More tests
 function twentysecondAugustTest(α::Real, m::Integer, n::Integer)
 	obj = ZernikeSuite.lower(ZernikePoly(α+1, m-1, n-1))
-	mbump(f::ZFun) = f - mzp(mzs(f))
 	lhs = -2*α*(α+1)*mzp(mzs(obj)) + (2*m*n+α*(m+n))*mbump(obj) + α*mbump(mzs(dzs(obj))+mzp(dzp(obj)))
 	Q = ZernikePoly((α+1)-1, m, n) - m*n/(m+α)/(n+α)*ZernikePoly((α+1)-1, m-1, n-1)
 	rhs = -2*(α+1)*(m+α)*(n+α)/(m+n+α)*Q
@@ -177,7 +175,6 @@ function OPSOPTestsA(α::Real, maxdeg::Integer)
 	srand(0)
 	mat = randn(maxdeg+1,maxdeg+1) + im*randn(maxdeg+1,maxdeg+1)
 	OP = [sum(mat[i,:].*OPBasis) for i in 1:maxdeg+1]
-	mbump(f::ZFun) = f - mzp(mzs(f))
 	SOPp1 = [-2*2*(α+1)*mbump(p) for p in OP]
 	SOPp2 = [4*α*(α+1)*mzs(mzp(p)) for p in OP]
 	SOPp3 = [-4*(α+1)*mbump(mzs(dzs(p)) + mzp(dzp(p))) for p in OP]
@@ -223,7 +220,6 @@ function OPSOPTestsB(α::Real, maxdeg::Integer)
 	srand(0)
 	mat = randn(maxdeg+1,maxdeg+1) + im*randn(maxdeg+1,maxdeg+1)
 	OP = [sum(mat[i,:].*OPBasis) for i in 1:maxdeg+1]
-	mbump(f::ZFun) = f - mzp(mzs(f))
 	x = mx(ZFun((α+1)-1, 0, [1.0]))
 	y = mx(ZFun((α+1)-1, 0, [1.0]))
 	gSOPp1 = [4*2*(α+1)*[mx(p), my(p)] for p in OP]
@@ -257,7 +253,6 @@ function OPSOPTestsC(α::Real, maxdeg::Integer)
 	srand(0)
 	mat = randn(maxdeg+1,maxdeg+1) + im*randn(maxdeg+1,maxdeg+1)
 	OP = [sum(mat[i,:].*OPBasis) for i in 1:maxdeg+1]
-	mbump(f::ZFun) = f - mzp(mzs(f))
 	x = mx(ZFun((α+1)-1, 0, [1.0]))
 	y = mx(ZFun((α+1)-1, 0, [1.0]))
 	gSOPp1 = [-(2*2*α+4)*[mbump(dx(p)), mbump(dy(p))] for p in OP]
@@ -283,7 +278,6 @@ function OPSOPTestsC4(α::Real, maxdeg::Integer)
 	srand(0)
 	mat = randn(maxdeg+1,maxdeg+1) + im*randn(maxdeg+1,maxdeg+1)
 	OP = [sum(mat[i,:].*OPBasis) for i in 1:maxdeg+1]
-	mbump(f::ZFun) = f - mzp(mzs(f))
 	x = mx(ZFun((α+1)-1, 0, [1.0]))
 	y = mx(ZFun((α+1)-1, 0, [1.0]))
 	gSOPp1 = [-(2*2*α+4)*[mbump(dx(p)), mbump(dy(p))] for p in OP]
@@ -309,7 +303,6 @@ function OPSOPTestsC5(α::Real, maxdeg::Integer)
 	srand(0)
 	mat = randn(maxdeg+1,maxdeg+1) + im*randn(maxdeg+1,maxdeg+1)
 	OP = [sum(mat[i,:].*OPBasis) for i in 1:maxdeg+1]
-	mbump(f::ZFun) = f - mzp(mzs(f))
 	x = mx(ZFun((α+1)-1, 0, [1.0]))
 	y = mx(ZFun((α+1)-1, 0, [1.0]))
 	gSOPp1 = [-(2*2*α+4)*[mbump(dx(p)), mbump(dy(p))] for p in OP]
@@ -336,7 +329,6 @@ function OPSOPTestsC6(α::Real, maxdeg::Integer)
 	srand(0)
 	mat = randn(maxdeg+1,maxdeg+1) + im*randn(maxdeg+1,maxdeg+1)
 	OP = [sum(mat[i,:].*OPBasis) for i in 1:maxdeg+1]
-	mbump(f::ZFun) = f - mzp(mzs(f))
 	x = mx(ZFun((α+1)-1, 0, [1.0]))
 	y = mx(ZFun((α+1)-1, 0, [1.0]))
 	gSOPp1 = [-(2*2*α+4)*[mbump(dx(p)), mbump(dy(p))] for p in OP]
@@ -360,7 +352,6 @@ function OPSOPTestsC6(α::Real, maxdeg::Integer)
 end
 
 function fifteenthSeptemberTest(α::Real, maxdeg::Integer, j::Integer)
-	mbump(f::ZFun) = f - mzp(mzs(f))
 	OPBasis = [ZernikePoly(α, i, maxdeg-i) for i in 0:maxdeg]
 	srand(0)
 	mat = randn(maxdeg+1,maxdeg+1) + im*randn(maxdeg+1,maxdeg+1)
