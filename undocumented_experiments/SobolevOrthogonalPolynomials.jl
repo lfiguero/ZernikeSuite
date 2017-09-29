@@ -2,12 +2,12 @@ include("../ZernikeSuite.jl")
 using ZernikeSuite
 
 function sip(f::ZFun, g::ZFun)
-    @assert f.α == g.α
+    @assert (f.α == g.α == 0) || abs(f.α-g.α)/min(abs(f.α),abs(g.α)) < 10*eps()
     2.0 * (wip(dzp(f),dzp(g)) + wip(dzs(f),dzs(g))) + wip(proj(f,0), proj(g,0))
 end
 
 function bf(f::ZFun, g::ZFun)
-    @assert f.α == g.α
+    @assert (f.α == g.α == 0) || abs(f.α-g.α)/min(abs(f.α),abs(g.α)) < 10*eps()
     ZRaise = ZernikeSuite.raise
     dzpzpf = ZRaise(dzp(dzp(f)))
     dzpzsf = ZRaise(dzp(dzs(f)))
