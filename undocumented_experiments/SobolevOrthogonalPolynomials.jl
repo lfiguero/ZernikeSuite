@@ -356,7 +356,7 @@ function fifteenthSeptemberTest(α::Real, maxdeg::Integer, j::Integer)
 	srand(0)
 	mat = randn(maxdeg+1,maxdeg+1) + im*randn(maxdeg+1,maxdeg+1)
 	OP = [sum(mat[i,:].*OPBasis) for i in 1:maxdeg+1]
-	@assert j==1 or j==2
+	@assert j==1 || j==2
 	mj = (j==1)?mx:my
 	dj = (j==1)?dx:dy
 	ve = [0;0]; ve[j] = 1.0
@@ -369,5 +369,18 @@ function fifteenthSeptemberTest(α::Real, maxdeg::Integer, j::Integer)
 	mappedOP = [mbump(dj(p))-2*α*mj(p) for p in OP]
 	full = [wip(vq[1], dx(P)) + wip(vq[2], dy(P)) for vq in vLowerBasis, P in mappedOP]
 	return [term1[:] term2[:] term3[:] term4[:]], full
+end
+
+# First order parameter raising operator
+function foplo(f::ZFun, b::Real, j::Integer)
+	@assert j==1 || j==2
+	mj = (j==1)?mx:my
+	dj = (j==1)?dx:dy
+	return -mbump(dj(f)) + 2*(b+1)*mj(f)
+end
+
+function optosop(f::ZFun)
+	α = f.α-1.0
+	return ZernikeSuite.lower(foplo(foplo(f, α, 1), α-1, 1) + foplo(foplo(f, α, 2), α-1, 2))
 end
 
