@@ -148,7 +148,7 @@ function runsConjecturedSharpnessTest(outputDirectory::String)
 		end
 		PyPlot.legend(loc=0)
 		PyPlot.title(PyPlot.LaTeXString("\$\\alpha = $α,\\ l = $l\$"))
-		PyPlot.xlabel(Pyplot.LaTeXString("\$N^{(l)}_j\$"))
+		PyPlot.xlabel(PyPlot.LaTeXString("\$N^{(l)}_j\$"))
 		PyPlot.ylabel("Seminorm ratio")
 		PyPlot.tight_layout()
 		# Save figure
