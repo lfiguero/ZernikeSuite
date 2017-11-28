@@ -362,5 +362,9 @@ end
 
 
 include("sharpness/sharpness.jl")
+include("undocumented_experiments/maximumRatioApparentlyAttainedAtDegreeNPlusTwo.jl")
+include("undocumented_experiments/normRatio.jl")
+include("undocumented_experiments/SobolevOrthogonalPolynomials.jl")
+include("undocumented_experiments/weakAntigradient.jl")
 
 end
