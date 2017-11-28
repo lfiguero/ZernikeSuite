@@ -35,7 +35,7 @@ The functions `runsConjecturedSharpnessTest` and `runsKnownSharpnessTest` take a
 To run them, write in the Julia prompt, after installing this package,
 
 ```julia-repl
-julia> using Zernikesuite
+julia> using ZernikeSuite
 julia> ZernikeSuite.runsConjecturedSharpnessTest("relative-path-of-and-output-directory")
 julia> ZernikeSuite.runsKnownSharpnessTest("relative-path-of-and-output-directory")
 ```
