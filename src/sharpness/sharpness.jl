@@ -1,5 +1,7 @@
-include("ZernikeSuite.jl")
-using ZernikeSuite
+##########################################################################
+# Numerical experiments relevant for <http://arxiv.org/abs/1503.04485v2> #
+##########################################################################
+import PyPlot
 
 function pochhammer(x::Float64, k::Integer)
     out = 1.0
@@ -106,4 +108,116 @@ function conjecturedSharpnessTest(α::Real, l::Integer, jarray::AbstractVector{I
 	ratios[index,:] = sqrt(wseminormsressq/wlseminormtsq)
     end
     ratios
+end
+
+function runsConjecturedSharpnessTest(outputDirectory::String)
+	PyPlot.pygui(false) # We just want to export EPS files
+	mkpath(outputDirectory)
+
+	# Run a small instance of the main program so Julia compiles it
+	conjecturedSharpnessTest(0.0, 2, 2:5);
+	list_of_α = [-0.99, 0.0, 9.9]
+	max_l = 3
+	number_of_sequence_members = 12
+	figcount = 0
+	colors = ["k", "b", "r", "g", "m"]
+	markers = ["o", "s", "^", "*", "D", "v", "h"]
+	cycledStyle(k::Int64) = colors[mod(k-1,length(colors))+1] * markers[mod(k-1,length(markers))+1] * "-"
+	cycledStyleAlt(k::Int64) = colors[mod(k-1,length(colors))+1] * "--"
+
+	for α in list_of_α
+	    for l in 1:max_l
+		jarray = l + 2.^(1:number_of_sequence_members)
+		ratios = conjecturedSharpnessTest(α, l, jarray)
+		expectedRates = [-l; -1/2 + 2*(1:l) - l]
+		Nlj = 2jarray+2l-1
+		# Plotting
+		PyPlot.figure(figsize=(6,3))
+		# Straight lines for rate comparison
+		for k = 1:size(ratios,2)
+		    # The C raises/lowers the straight lines showing the expected
+		    # convergence/divergence rates so that they pass through their
+		    # corresponding final datapoints
+		    C = ratios[end,k] / Nlj[end]^expectedRates[k]
+		    PyPlot.loglog(Nlj, C * Nlj.^expectedRates[k], cycledStyleAlt(k), label="_nolegend_")
+		end
+		# Plots of 2j+2l-1 against the value of (residual norm-r / seminorm-l)
+		# at the rate attaining sequence member of index j (logarithmic scale)
+		for k = 1:size(ratios,2)
+		    PyPlot.loglog(Nlj, ratios[:,k], cycledStyle(k), label=PyPlot.LaTeXString("\$r = $(k-1)\$"))
+		end
+		PyPlot.legend(loc=0)
+		PyPlot.title(PyPlot.LaTeXString("\$\\alpha = $α,\\ l = $l\$"))
+		PyPlot.xlabel(Pyplot.LaTeXString("\$N^{(l)}_j\$"))
+		PyPlot.ylabel("Seminorm ratio")
+		PyPlot.tight_layout()
+		# Save figure
+		figcount = figcount + 1
+		PyPlot.savefig(outputDirectory * "/cst" * @sprintf("%03d", figcount) * ".eps")
+		# Computation of empirical rates and export of part of a LaTeX tabular
+		ER = zeros(size(ratios))
+		ER[1,:] = convert(Float64, NaN)
+		for k = 1:size(ratios, 2)
+		    ER[2:end,k] = empiricalRate(Nlj, ratios[:,k])
+		end
+		f = open(outputDirectory * "/cst" * @sprintf("%03d", figcount) * ".tex", "w")
+		table = """
+		% The commands \\ratio, \\egr and \\nan appearing below are not
+		% standard LaTeX commands; it is up to the user to either replace or
+		% define them.
+		"""
+		table = table * "% \$\\alpha = $α\$, \$l = $l\$\n"
+		table = table * "\$N^{(l)}_j\$ & "
+		for k = 1:size(ratios, 2)
+		    table = table * "\\ratio{\\alpha}{l}{$(k-1)}{j} & "
+		    table = table * "\\egr{\\alpha}{l}{$(k-1)}{j}" * (k<size(ratios, 2)?" & ":"\\\\\n")
+		end
+		for row = 1:size(ratios, 1)
+		    table = table * string(Nlj[row]) * " & "
+		    for k = 1:size(ratios, 2)
+			table = table * @sprintf("%5.2e", ratios[row,k]) * " & "
+			table = table * @sprintf("%5.3f", ER[row,k]) * (k<size(ratios, 2)?" & ":"\\\\\n")
+		    end
+		end
+		table = replace(table, "NaN", "\\nan")
+		write(f, table)
+		close(f)
+	    end
+	end
+end
+
+function runsKnownSharpnessTest(outputDirectory::String)
+	PyPlot.pygui(false) # We just want to export EPS files
+	mkpath(outputDirectory)
+
+	# Run a small instance of the main program so Julia compiles it
+	knownSharpnessTest(0.0, 2, 2:5);
+
+	list_of_α = [-0.99, 0.0, 9.9]
+	max_l = 3
+	number_of_sequence_members = 100
+	figcount = 0
+
+	for i in 1:length(list_of_α)
+	    for l in 1:max_l
+		α = list_of_α[i]
+		jarray = l:l+number_of_sequence_members-1
+		ratio1, ratio2, re1, re2, re3 = knownSharpnessTest(α, l, jarray)
+		expectedRate1 = -l
+		expectedRate2 = 3/2 - l
+		# Plots of relative errors between the numerical ratios and using the
+		# known formulae
+		PyPlot.figure(figsize=(4,3))
+		PyPlot.plot(jarray, re1, "ko-", jarray, re2, "rs-", jarray, re3, "b^-", linewidth=1)
+		PyPlot.legend(("RE 1", "RE 2", "RE 3"), loc=0)
+		PyPlot.title(PyPlot.LaTeXString("\$\\alpha = " * string(α) * ",\\ l = " * string(l) * "\$"))
+		PyPlot.xlabel(PyPlot.LaTeXString("\$j\$"))
+		PyPlot.ylabel("Relative error")
+		PyPlot.axis("tight")
+		PyPlot.tight_layout()
+		# Save figure
+		figcount = figcount + 1
+		PyPlot.savefig(outputDirectory * "/kst" * @sprintf("%03d", figcount) * ".eps")
+	    end
+	end
 end
