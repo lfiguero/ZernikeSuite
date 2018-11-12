@@ -2,6 +2,8 @@
 # Numerical experiments relevant for <http://arxiv.org/abs/1503.04485v2> #
 ##########################################################################
 import PyPlot
+import Printf
+import SpecialFunctions: gamma, lgamma
 
 function pochhammer(x::Float64, k::Integer)
     out = 1.0
@@ -11,7 +13,7 @@ end
 
 relativeError(a, b) = 2*abs(a-b)/(abs(a)+abs(b))
 
-empiricalRate(x, y) = log(y[2:end]./y[1:end-1]) ./ log(x[2:end]./x[1:end-1])
+empiricalRate(x, y) = log.(y[2:end]./y[1:end-1]) ./ log.(x[2:end]./x[1:end-1])
 
 # The polynomial $t^{(\alpha,l)}_j$ of the paper
 function t_alj(α::Real, l::Integer, j::Integer)
@@ -105,7 +107,7 @@ function conjecturedSharpnessTest(α::Real, l::Integer, jarray::AbstractVector{I
 	wseminormsressq = all_w_sobolev_sq_sn(res, l)
 	wlseminormtsq = w_sobolev_sq_sn(t, l)
 	display(index)
-	ratios[index,:] = sqrt(wseminormsressq/wlseminormtsq)
+	ratios[index,:] = sqrt.(wseminormsressq/wlseminormtsq)
     end
     ratios
 end
@@ -127,10 +129,10 @@ function runsConjecturedSharpnessTest(outputDirectory::String)
 
 	for α in list_of_α
 	    for l in 1:max_l
-		jarray = l + 2.^(1:number_of_sequence_members)
+		jarray = l .+ 2 .^ (1:number_of_sequence_members)
 		ratios = conjecturedSharpnessTest(α, l, jarray)
-		expectedRates = [-l; -1/2 + 2*(1:l) - l]
-		Nlj = 2jarray+2l-1
+		expectedRates = [-l; -1/2 .+ 2*(1:l) .- l]
+		Nlj = 2jarray .+ 2l .- 1
 		# Plotting
 		PyPlot.figure(figsize=(6,3))
 		# Straight lines for rate comparison
@@ -153,14 +155,14 @@ function runsConjecturedSharpnessTest(outputDirectory::String)
 		PyPlot.tight_layout()
 		# Save figure
 		figcount = figcount + 1
-		PyPlot.savefig(outputDirectory * "/cst" * @sprintf("%03d", figcount) * ".eps")
+		PyPlot.savefig(outputDirectory * "/cst" * Printf.@sprintf("%03d", figcount) * ".eps")
 		# Computation of empirical rates and export of part of a LaTeX tabular
 		ER = zeros(size(ratios))
-		ER[1,:] = convert(Float64, NaN)
+		ER[1,:] .= convert(Float64, NaN)
 		for k = 1:size(ratios, 2)
 		    ER[2:end,k] = empiricalRate(Nlj, ratios[:,k])
 		end
-		f = open(outputDirectory * "/cst" * @sprintf("%03d", figcount) * ".tex", "w")
+		f = open(outputDirectory * "/cst" * Printf.@sprintf("%03d", figcount) * ".tex", "w")
 		table = """
 		% The commands \\ratio, \\egr and \\nan appearing below are not
 		% standard LaTeX commands; it is up to the user to either replace or
@@ -170,16 +172,16 @@ function runsConjecturedSharpnessTest(outputDirectory::String)
 		table = table * "\$N^{(l)}_j\$ & "
 		for k = 1:size(ratios, 2)
 		    table = table * "\\ratio{\\alpha}{l}{$(k-1)}{j} & "
-		    table = table * "\\egr{\\alpha}{l}{$(k-1)}{j}" * (k<size(ratios, 2)?" & ":"\\\\\n")
+		    table = table * "\\egr{\\alpha}{l}{$(k-1)}{j}" * (k<size(ratios, 2) ? " & " : "\\\\\n")
 		end
 		for row = 1:size(ratios, 1)
 		    table = table * string(Nlj[row]) * " & "
 		    for k = 1:size(ratios, 2)
-			table = table * @sprintf("%5.2e", ratios[row,k]) * " & "
-			table = table * @sprintf("%5.3f", ER[row,k]) * (k<size(ratios, 2)?" & ":"\\\\\n")
+			table = table * Printf.@sprintf("%5.2e", ratios[row,k]) * " & "
+			table = table * Printf.@sprintf("%5.3f", ER[row,k]) * (k<size(ratios, 2) ? " & " : "\\\\\n")
 		    end
 		end
-		table = replace(table, "NaN", "\\nan")
+		table = replace(table, "NaN" => "\\nan")
 		write(f, table)
 		close(f)
 	    end
@@ -217,7 +219,7 @@ function runsKnownSharpnessTest(outputDirectory::String)
 		PyPlot.tight_layout()
 		# Save figure
 		figcount = figcount + 1
-		PyPlot.savefig(outputDirectory * "/kst" * @sprintf("%03d", figcount) * ".eps")
+		PyPlot.savefig(outputDirectory * "/kst" * Printf.@sprintf("%03d", figcount) * ".eps")
 	    end
 	end
 end

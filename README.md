@@ -4,10 +4,12 @@ The main purpose of this repository is making available the numerical tests of t
 
 ## Installation
 
-Write in the Julia prompt:
+This package should work for Julia 0.7 and above.
+
+At the Julia prompt press `]` to enter the Pkg REPL mode and then enter:
 
 ```julia-repl
-julia> Pkg.clone("https://github.com/lfiguero/ZernikeSuite.git")
+(v1.0) pkg> add https://github.com/lfiguero/ZernikeSuite.git
 ```
 
 ## `src/ZernikeSuite.jl`
@@ -36,8 +38,8 @@ To run them, write in the Julia prompt, after installing this package,
 
 ```julia-repl
 julia> using ZernikeSuite
-julia> ZernikeSuite.runsConjecturedSharpnessTest("relative-path-of-and-output-directory")
-julia> ZernikeSuite.runsKnownSharpnessTest("relative-path-of-and-output-directory")
+julia> ZernikeSuite.runsConjecturedSharpnessTest("relative-path-of-an-output-directory")
+julia> ZernikeSuite.runsKnownSharpnessTest("relative-path-of-an-output-directory")
 ```
 
 The output consists of  plots and parts of LaTeX tabulars.

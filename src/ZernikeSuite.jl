@@ -16,24 +16,23 @@ end
 
 polyDim(deg::Integer) = (deg+1)*(deg+2)÷2    
 
-# ZFun type and constructors
-type ZFun
+struct ZFun
     α::Real
     degree::Integer
-    coefficients::Vector{Complex128}
+    coefficients::Vector{ComplexF64}
     function ZFun(α, degree, coefficients)
 	@assert α > -1
 	2*length(coefficients)==(degree+1)*(degree+2) ? new(α, degree, coefficients) : error("length(coefficients) should be (degree+1)*(degree+2)÷2")
     end
 end
 
-function ZFun{T<:Number}(α::Real, coefficients::Vector{T})
+function ZFun(α::Real, coefficients::Vector{T}) where T<:Number
     b, n = isPolySpaceDim(length(coefficients))
     if b
 	newcoefficients = coefficients
     else
 	cl = polyDim(n)
-	newcoefficients = zeros(Complex128, cl)
+	newcoefficients = zeros(ComplexF64, cl)
 	newcoefficients[1:length(coefficients)] = coefficients
     end
     ZFun(α, n, newcoefficients)
@@ -51,7 +50,7 @@ for op = (:+, :-)
 	    gl = length(g.coefficients)
 	    retl = max(fl, gl)
 	    retd = max(f.degree, g.degree)
-	    retcoefficients = zeros(Complex128, retl)
+	    retcoefficients = zeros(ComplexF64, retl)
 	    retcoefficients[1:fl] = f.coefficients;
 	    retcoefficients[1:gl] = ($op)(retcoefficients[1:gl], g.coefficients);
 	    ZFun(f.α, retd, retcoefficients)
@@ -81,16 +80,16 @@ positionRange(deg::Integer) = (polyDim(deg-1)+1):polyDim(deg)
 function raise(f::ZFun)
     reta = f.α + 1.0
     retd = f.degree
-    retc = zeros(Complex128, size(f.coefficients))
+    retc = zeros(ComplexF64, size(f.coefficients))
     for k = 0:f.degree
 	krange = positionRange(k)
 	i = collect(0:k)
-	Adiag = (i+f.α+1) .* (k-i+f.α+1) ./ (k+f.α+1) / (f.α+1)
+	Adiag = (i .+ f.α .+ 1) .* (k .- i .+ f.α .+ 1) ./ (k+f.α+1) / (f.α+1)
 	v = f.coefficients[krange] .* Adiag
 	if k < f.degree-1
 	    kplustworange = positionRange(k+2)
 	    i = collect(1:(k+1))
-	    Bdiag = i .* (k+2-i) ./ (k+f.α+3) / (f.α+1)
+	    Bdiag = i .* (k+2 .- i) ./ (k+f.α+3) / (f.α+1)
 	    v = v - f.coefficients[kplustworange][2:k+2] .* Bdiag
 	end
 	retc[krange] = v
@@ -103,16 +102,16 @@ function lower(f::ZFun)
     @assert f.α > 0
     reta = f.α - 1
     retd = f.degree
-    retc = zeros(Complex128, size(f.coefficients))
+    retc = zeros(ComplexF64, size(f.coefficients))
     for k = f.degree:-1:0
 	krange = positionRange(k)
 	i = collect(0:k)
-	Adiag = (i+f.α) .* (k-i+f.α) ./ (k+f.α) / f.α
+	Adiag = (i .+ f.α) .* (k .- i .+ f.α) ./ (k+f.α) / f.α
 	rhs = f.coefficients[krange]
 	if k < f.degree-1
 	    kplustworange = positionRange(k+2)
 	    i = collect(1:(k+1))
-	    Bdiag = i .* (k+2-i) ./ (k+f.α+2) / f.α
+	    Bdiag = i .* (k+2 .- i) ./ (k+f.α+2) / f.α
 	    rhs = rhs + retc[kplustworange][2:k+2] .* Bdiag
 	end
 	retc[krange] = rhs ./ Adiag
@@ -123,7 +122,7 @@ end
 function mzp(f::ZFun)
 	# Multiplication by plain z; i.e., x + im*y
 	retd = f.degree + 1
-	retc = zeros(Complex128, polyDim(retd))
+	retc = zeros(ComplexF64, polyDim(retd))
 	c = 1
 	for k = 0:f.degree+1
 		for i = 0:k
@@ -142,7 +141,7 @@ end
 function mzs(f::ZFun)
 	# Multiplication by starred z; i.e., x - im*y
 	retd = f.degree + 1
-	retc = zeros(Complex128, polyDim(retd))
+	retc = zeros(ComplexF64, polyDim(retd))
 	c = 1
 	for k = 0:f.degree+1
 		for i = 0:k
@@ -169,12 +168,12 @@ function dzsShift(f::ZFun)
 	return ZFun(reta, 0, [0.0])
     end
     retd = f.degree - 1
-    retc = zeros(Complex128, polyDim(retd))
+    retc = zeros(ComplexF64, polyDim(retd))
     for k = 1:f.degree
 	krange = positionRange(k)
 	kminusonerange = positionRange(k-1)
 	i = collect(0:k-1)
-	v = f.coefficients[krange][1:k] .* (i+f.α+1) .* (k-i) / (f.α+1)
+	v = f.coefficients[krange][1:k] .* (i .+ f.α .+ 1) .* (k .- i) / (f.α+1)
 	retc[kminusonerange] = v
     end
     ZFun(reta, retd, retc)
@@ -187,12 +186,12 @@ function dzpShift(f::ZFun)
 	return ZFun(reta, 0, [0.0])
     end
     retd = f.degree - 1
-    retc = zeros(Complex128, polyDim(retd))
+    retc = zeros(ComplexF64, polyDim(retd))
     for k = 1:f.degree
 	krange = positionRange(k)
 	kminusonerange = positionRange(k-1)
 	i = collect(1:k)
-	v = f.coefficients[krange][2:k+1] .* (k-i+f.α+1) .* i / (f.α+1)
+	v = f.coefficients[krange][2:k+1] .* (k .- i .+ f.α .+ 1) .* i / (f.α+1)
 	retc[kminusonerange] = v
     end
     ZFun(reta, retd, retc)
@@ -205,7 +204,7 @@ dx(f::ZFun) = (dzs(f) + dzp(f))
 dy(f::ZFun) = (dzs(f) - dzp(f)) / (im)
 function dθ(f::ZFun)
     # Angular derivative
-    retc = zeros(Complex128, polyDim(f.degree))
+    retc = zeros(ComplexF64, polyDim(f.degree))
     pos = 1
     for k = 0:f.degree
 	for i = 0:k
@@ -273,7 +272,7 @@ end
 function hgcoll(f::ZFun, m::Integer)
     # Collection of canonical derivatives up to degree m
     @assert m >= 0
-    dcoll = Array(ZFun, div((m+1)*(m+2),2))
+    dcoll = Array{ZFun}(undef, div((m+1)*(m+2),2))
     dcoll[1] = f
     for k = 1:m
 	for ind = 1:k
@@ -287,7 +286,7 @@ end
 function hgcollnc(f::ZFun, m::Integer)
     # Collection of non canonical derivatives up to degree m
     @assert m >= 0
-    dcoll = Array(ZFun, div((m+1)*(m+2),2))
+    dcoll = Array{ZFun}(undef, div((m+1)*(m+2),2))
     dcoll[1] = f
     for k = 1:m
 	for ind = 1:k
@@ -355,7 +354,7 @@ end
 # Zernike polynomials
 function ZernikePoly(α::Real, m::Integer, n::Integer)
     retd = m+n;
-    retc = zeros(Complex128, polyDim(retd))
+    retc = zeros(ComplexF64, polyDim(retd))
     retc[polyDim(retd-1)+1+m] = 1.0
     ZFun(α, retd, retc)
 end

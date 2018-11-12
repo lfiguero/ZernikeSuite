@@ -8,7 +8,10 @@
 # eigenvalue problem. Here w is the weight that corresponds to the projection
 # operator. As expected, the maximum is 0 for k = 0. Interestingly, the results
 # suggest that the maximum of that ratio among all of H^1_w is essentially (or
-# actually) attained with k = 2 already.
+# actually) attained at k = 2 already.
+
+import Arpack: eigs
+
 function maximumRatioApparentlyAttainedAtDegreeNPlusTwo()
 	α = 4.5
 	N = 7
@@ -18,8 +21,8 @@ function maximumRatioApparentlyAttainedAtDegreeNPlusTwo()
 	# <p-Proj_N(p), q-Proj_N(q)>_1 = lambda * <p, q>_1
 	# in Π^2_{N+d}, for d in {0, ..., deltaN}
 	basis = [ZernikePoly(α, i, deg-i) for deg in 0:N+deltaN for i in 0:deg]
-	A = zeros(Complex128, (length(basis), length(basis)))
-	B = zeros(Complex128, (length(basis), length(basis)))
+	A = zeros(ComplexF64, (length(basis), length(basis)))
+	B = zeros(ComplexF64, (length(basis), length(basis)))
 	for j in 1:length(basis)
 	    p = basis[j]
 	    resp = p - proj(p, N)

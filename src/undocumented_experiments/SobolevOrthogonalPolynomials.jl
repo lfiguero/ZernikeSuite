@@ -1,3 +1,6 @@
+import LinearAlgebra: qr, svd, diag, Diagonal, dot, norm, rank, I
+import Random: MersenneTwister
+
 function sip(f::ZFun, g::ZFun)
     @assert (f.α == g.α == 0) || abs(f.α-g.α)/min(abs(f.α),abs(g.α)) < 10*eps()
     2.0 * (wip(dzp(f),dzp(g)) + wip(dzs(f),dzs(g))) + wip(proj(f,0), proj(g,0))
@@ -23,7 +26,7 @@ function recombine(coll::Array{ZernikeSuite.ZFun,1})
     # We will recombine using matrix Q in order to preserve intra-degree
     # orthogonality
     Q, R = qr(X)
-    newcoll = Array{ZernikeSuite.ZFun}(n)
+    newcoll = Array{ZernikeSuite.ZFun}(undef, n)
     for i = 1:n
 	newcoll[i] = Q[i,1]*coll[1]
 	for j = 2:n
@@ -41,7 +44,7 @@ function SOP(α::Real, maxdeg::Integer, normalizeFlag::Bool=false, recombineFlag
 	dim = length(basis)
 	# We turn the basis into a weighted Sobolev-orthogonal one via a
 	# Gram–Schmidt process
-	squaredNorm = Array{Float64}(dim)
+	squaredNorm = Array{Float64}(undef, dim)
 	for i = 1:dim
 		for j = 1:i-1
 			basis[i] = basis[i] - sip(basis[i], basis[j])/squaredNorm[j] * basis[j]
@@ -65,16 +68,16 @@ end
 
 function SturmLiouvilleTest(α::Real, maxdeg::Integer, normalizeFlag::Bool=false, recombineFlag::Bool=false)
 	basis = SOP(α, maxdeg, normalizeFlag, recombineFlag)
-	A = Array{Complex128}(length(basis), length(basis))
-	B = Array{Complex128}(length(basis), length(basis))
+	A = Array{ComplexF64}(undef, (length(basis), length(basis)))
+	B = Array{ComplexF64}(undef, (length(basis), length(basis)))
 	for i = 1:length(basis)
 		for j = 1:length(basis)
 			A[i,j] = bf(basis[i], basis[j])
 			B[i,j] = sip(basis[i], basis[j])
 		end
 	end
-	bf_orthogonality_test = norm(A-diagm(diag(A)))/norm(A)
-	sip_orthogonality_test = norm(B-diagm(diag(B)))/norm(B)
+	bf_orthogonality_test = norm(A-Diagonal(diag(A)))/norm(A)
+	sip_orthogonality_test = norm(B-Diagonal(diag(B)))/norm(B)
 	eigenvalues = diag(A) ./ diag(B)
 	return bf_orthogonality_test, sip_orthogonality_test, eigenvalues
 end
@@ -86,7 +89,7 @@ function relativeComponentWeight(f::ZFun)
 	rng = ZernikeSuite.positionRange(k)
 	out[k+1] = real(dot(f.coefficients[rng], weights[rng].*f.coefficients[rng]))
     end
-    out = sqrt(out/sum(out))
+    out = sqrt.(out/sum(out))
 end
 
 function coefficientFormulaTest(α::Real, maxdeg::Integer)
@@ -94,7 +97,7 @@ function coefficientFormulaTest(α::Real, maxdeg::Integer)
 	w = real(-[basis[ZernikeSuite.positionRange(deg)[i+1]].coefficients[ZernikeSuite.positionRange(deg-2)[i]] for deg in 3:maxdeg for i in 1:deg-1])
 	d = [deg for deg in 3:maxdeg for i in 1:deg-1]
 	md = [abs(2*i-deg) for deg in 3:maxdeg for i in 1:deg-1]
-	modelVal = (d-md).*(d+md)./(d-md+2*α)./(d+md+2*α)
+	modelVal = (d-md).*(d+md)./(d-md.+2*α)./(d+md.+2*α)
 	relRes = norm(w-modelVal)/norm(w)
 	return relRes
 end
@@ -134,11 +137,11 @@ function seventeenthAugustTest(α::Real, m::Integer, n::Integer)
 	lhs1 = -m*(α+1)*mzp(mzs(obj)) - (α+2)*mbump(mzp(dzp(obj))) + m*mbump(obj + mzs(dzs(obj))) + mbump(mbump(dzs(dzp(obj))))
 	rhs1 = -m*(α+1)*ZernikePoly((α+1)-1, m, n)
 	res1 = rhs1 - lhs1
-	relErr1 = wip(res1,res1)==wip(rhs1,rhs1)==0.0?0.0:sqrt(real(wip(res1,res1))/real(wip(rhs1,rhs1)))
+	relErr1 = wip(res1,res1)==wip(rhs1,rhs1)==0.0 ? 0.0 : sqrt(real(wip(res1,res1))/real(wip(rhs1,rhs1)))
 	lhs2 = -n*(α+1)*mzp(mzs(obj)) - (α+2)*mbump(mzs(dzs(obj))) + n*mbump(obj + mzp(dzp(obj))) + mbump(mbump(dzs(dzp(obj))))
 	rhs2 = -n*(α+1)*ZernikePoly((α+1)-1, m, n)
 	res2 = rhs2 - lhs2
-	relErr2 = wip(res2,res2)==wip(rhs2,rhs2)==0.0?0.0:sqrt(real(wip(res2,res2))/real(wip(rhs2,rhs2)))
+	relErr2 = wip(res2,res2)==wip(rhs2,rhs2)==0.0 ? 0.0 : sqrt(real(wip(res2,res2))/real(wip(rhs2,rhs2)))
 	return relErr1, relErr2
 end
 
@@ -169,8 +172,8 @@ end
 
 function OPSOPTestsA(α::Real, maxdeg::Integer)
 	OPBasis = [ZernikeSuite.lower(ZernikePoly(α+1, i, maxdeg-i)) for i in 0:maxdeg]
-	srand(0)
-	mat = randn(maxdeg+1,maxdeg+1) + im*randn(maxdeg+1,maxdeg+1)
+	rng = MersenneTwister(0) # For reproducibility
+	mat = randn(rng,maxdeg+1,maxdeg+1) + im*randn(rng,maxdeg+1,maxdeg+1)
 	OP = [sum(mat[i,:].*OPBasis) for i in 1:maxdeg+1]
 	SOPp1 = [-2*2*(α+1)*mbump(p) for p in OP]
 	SOPp2 = [4*α*(α+1)*mzs(mzp(p)) for p in OP]
@@ -186,15 +189,15 @@ function OPSOPTestsA(α::Real, maxdeg::Integer)
 	return SOTest
 end
 
-function matrixKernelStudy(mat::Matrix{Complex128})
+function matrixKernelStudy(mat::Matrix{ComplexF64})
 	r = rank(mat)
 	nrow = size(mat,1)
 	ncol = size(mat,2)
-	ppV = svdfact(mat)[:V][:,r+1:ncol]
-	makesones = ppV\ones(ncol,1)
-	aux = [makesones [zeros(1,ncol-r-1); eye(ncol-r-1)]]
-	q = qrfact(aux)[:Q]
-	nonObviousKernelBasis = ppV*q[:,2:end]
+	ppVt = svd(mat).Vt[r+1:ncol,:]
+	makesones = ppVt*ones(ncol,1)
+	aux = [makesones [zeros(1,ncol-r-1); I]]
+	q = qr(aux).Q
+	nonObviousKernelBasis = ppVt\q[:,2:end]
 	tf = (true, false)
 	allCombinations = Iterators.product(Iterators.repeated(tf, ncol)...)
 	coll = []
@@ -214,8 +217,8 @@ end
 
 function OPSOPTestsB(α::Real, maxdeg::Integer)
 	OPBasis = [ZernikeSuite.lower(ZernikePoly(α+1, i, maxdeg-i)) for i in 0:maxdeg]
-	srand(0)
-	mat = randn(maxdeg+1,maxdeg+1) + im*randn(maxdeg+1,maxdeg+1)
+	rng = MersenneTwister(0) # For reproducibility
+	mat = randn(rng,maxdeg+1,maxdeg+1) + im*randn(rng,maxdeg+1,maxdeg+1)
 	OP = [sum(mat[i,:].*OPBasis) for i in 1:maxdeg+1]
 	x = mx(ZFun((α+1)-1, 0, [1.0]))
 	y = mx(ZFun((α+1)-1, 0, [1.0]))
@@ -247,8 +250,8 @@ end
 
 function OPSOPTestsC(α::Real, maxdeg::Integer)
 	OPBasis = [ZernikeSuite.lower(ZernikePoly(α+1, i, maxdeg-i)) for i in 0:maxdeg]
-	srand(0)
-	mat = randn(maxdeg+1,maxdeg+1) + im*randn(maxdeg+1,maxdeg+1)
+	rng = MersenneTwister(0) # For reproducibility
+	mat = randn(rng,maxdeg+1,maxdeg+1) + im*randn(rng,maxdeg+1,maxdeg+1)
 	OP = [sum(mat[i,:].*OPBasis) for i in 1:maxdeg+1]
 	x = mx(ZFun((α+1)-1, 0, [1.0]))
 	y = mx(ZFun((α+1)-1, 0, [1.0]))
@@ -272,8 +275,8 @@ end
 
 function OPSOPTestsC4(α::Real, maxdeg::Integer)
 	OPBasis = [ZernikeSuite.lower(ZernikePoly(α+1, i, maxdeg-i)) for i in 0:maxdeg]
-	srand(0)
-	mat = randn(maxdeg+1,maxdeg+1) + im*randn(maxdeg+1,maxdeg+1)
+	rng = MersenneTwister(0) # For reproducibility
+	mat = randn(rng,maxdeg+1,maxdeg+1) + im*randn(rng,maxdeg+1,maxdeg+1)
 	OP = [sum(mat[i,:].*OPBasis) for i in 1:maxdeg+1]
 	x = mx(ZFun((α+1)-1, 0, [1.0]))
 	y = mx(ZFun((α+1)-1, 0, [1.0]))
@@ -297,8 +300,8 @@ end
 
 function OPSOPTestsC5(α::Real, maxdeg::Integer)
 	OPBasis = [ZernikeSuite.lower(ZernikePoly(α+1, i, maxdeg-i)) for i in 0:maxdeg]
-	srand(0)
-	mat = randn(maxdeg+1,maxdeg+1) + im*randn(maxdeg+1,maxdeg+1)
+	rng = MersenneTwister(0) # For reproducibility
+	mat = randn(rng,maxdeg+1,maxdeg+1) + im*randn(rng,maxdeg+1,maxdeg+1)
 	OP = [sum(mat[i,:].*OPBasis) for i in 1:maxdeg+1]
 	x = mx(ZFun((α+1)-1, 0, [1.0]))
 	y = mx(ZFun((α+1)-1, 0, [1.0]))
@@ -323,8 +326,8 @@ end
 
 function OPSOPTestsC6(α::Real, maxdeg::Integer)
 	OPBasis = [ZernikeSuite.lower(ZernikePoly(α+1, i, maxdeg-i)) for i in 0:maxdeg]
-	srand(0)
-	mat = randn(maxdeg+1,maxdeg+1) + im*randn(maxdeg+1,maxdeg+1)
+	rng = MersenneTwister(0) # For reproducibility
+	mat = randn(rng,maxdeg+1,maxdeg+1) + im*randn(rng,maxdeg+1,maxdeg+1)
 	OP = [sum(mat[i,:].*OPBasis) for i in 1:maxdeg+1]
 	x = mx(ZFun((α+1)-1, 0, [1.0]))
 	y = mx(ZFun((α+1)-1, 0, [1.0]))
@@ -350,12 +353,12 @@ end
 
 function fifteenthSeptemberTest(α::Real, maxdeg::Integer, j::Integer)
 	OPBasis = [ZernikePoly(α, i, maxdeg-i) for i in 0:maxdeg]
-	srand(0)
-	mat = randn(maxdeg+1,maxdeg+1) + im*randn(maxdeg+1,maxdeg+1)
+	rng = MersenneTwister(0) # For reproducibility
+	mat = randn(rng,maxdeg+1,maxdeg+1) + im*randn(rng,maxdeg+1,maxdeg+1)
 	OP = [sum(mat[i,:].*OPBasis) for i in 1:maxdeg+1]
 	@assert j==1 || j==2
-	mj = (j==1)?mx:my
-	dj = (j==1)?dx:dy
+	mj = (j==1) ? mx : my
+	dj = (j==1) ? dx : dy
 	ve = [0;0]; ve[j] = 1.0
 	lowerBasis = [ZernikePoly(α, i, deg-i) for deg in 0:maxdeg-1 for i in 0:deg]
 	vLowerBasis = [[q1, q2] for q1 in lowerBasis, q2 in lowerBasis]
@@ -371,8 +374,8 @@ end
 # First order parameter raising operator
 function foplo(f::ZFun, b::Real, j::Integer)
 	@assert j==1 || j==2
-	mj = (j==1)?mx:my
-	dj = (j==1)?dx:dy
+	mj = (j==1) ? mx : my
+	dj = (j==1) ? dx : dy
 	return -mbump(dj(f)) + 2*(b+1)*mj(f)
 end
 
