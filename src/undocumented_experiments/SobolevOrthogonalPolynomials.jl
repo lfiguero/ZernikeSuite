@@ -399,7 +399,7 @@ function sossip(f::ZFun, g::ZFun)
 end
 
 # Second order old Sobolev inner product
-function soosip(f::ZFun, g::FZun)
+function soosip(f::ZFun, g::ZFun)
 	semi = sossip(f,g)
 	semi + wip(proj(f,1),proj(g,1))
 end
