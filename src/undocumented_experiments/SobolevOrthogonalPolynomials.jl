@@ -384,3 +384,91 @@ function optosop(f::ZFun)
 	return ZernikeSuite.lower(foplo(foplo(f, α, 1), α-1, 1) + foplo(foplo(f, α, 2), α-1, 2))
 end
 
+# Second order Sobolev semi-inner product
+function sossip(f::ZFun, g::ZFun)
+	@assert (f.α == g.α == 0) || abs(f.α-g.α)/min(abs(f.α),abs(g.α)) < 10*eps()
+	dzpzpf = dzp(dzp(f))
+	dzpzsf = dzp(dzs(f))
+	dzszpf = dzs(dzp(f))
+	dzszsf = dzs(dzs(f))
+	dzpzpg = dzp(dzp(g))
+	dzpzsg = dzp(dzs(g))
+	dzszpg = dzs(dzp(g))
+	dzszsg = dzs(dzs(g))
+	4.0 * (wip(dzpzpf,dzpzpg) + wip(dzpzsf,dzpzsg) + wip(dzszpf,dzszpg) + wip(dzszsf,dzszsg))
+end
+
+# Second order old Sobolev inner product
+function soosip(f::ZFun, g::FZun)
+	semi = sossip(f,g)
+	semi + wip(proj(f,1),proj(g,1))
+end
+
+# Second order new Sobolev inner product
+function sonsip(f::ZFun, g::ZFun)
+	semi = sossip(f,g)
+	semi + 2.0 * (wip(proj(dzp(f),0),proj(dzp(g),0)) + wip(proj(dzs(f),0),proj(dzs(g),0))) + wip(proj(f,0),proj(g,0))
+end
+
+# Generation of second order old Sobolev orthogonal polynomials through the Gram–Schmidth process
+function sooSOP(α::Real, maxdeg::Integer, normalizeFlag::Bool=false, recombineFlag::Bool=false)
+	@assert α > -1
+	@assert maxdeg ≥ 0
+	# We start with basis which is weighted L²-orthogonal
+	basis = [ZernikePoly(α, i, k-i) for k in 0:maxdeg for i in 0:k]
+	dim = length(basis)
+	# We turn the basis into a weighted Sobolev-orthogonal one via a
+	# Gram–Schmidt process
+	squaredNorm = Array{Float64}(undef, dim)
+	for i = 1:dim
+		for j = 1:i-1
+			basis[i] = basis[i] - soosip(basis[i], basis[j])/squaredNorm[j] * basis[j]
+		end
+		if normalizeFlag
+			basis[i] = basis[i]/sqrt(soosip(basis[i],basis[i]))
+			squaredNorm[i] = 1.0
+		else
+			squaredNorm[i] = real(soosip(basis[i], basis[i]))
+		end
+	end
+	# Intra-degree recombinations
+	if recombineFlag
+		for k = 0:maxdeg
+			rng = ZernikeSuite.positionRange(k)
+			basis[rng] = recombine(basis[rng])
+		end
+	end
+	return basis
+end
+
+
+# Generation of second order new Sobolev orthogonal polynomials through the Gram–Schmidth process
+function sonSOP(α::Real, maxdeg::Integer, normalizeFlag::Bool=false, recombineFlag::Bool=false)
+	@assert α > -1
+	@assert maxdeg ≥ 0
+	# We start with basis which is weighted L²-orthogonal
+	basis = [ZernikePoly(α, i, k-i) for k in 0:maxdeg for i in 0:k]
+	dim = length(basis)
+	# We turn the basis into a weighted Sobolev-orthogonal one via a
+	# Gram–Schmidt process
+	squaredNorm = Array{Float64}(undef, dim)
+	for i = 1:dim
+		for j = 1:i-1
+			basis[i] = basis[i] - sonsip(basis[i], basis[j])/squaredNorm[j] * basis[j]
+		end
+		if normalizeFlag
+			basis[i] = basis[i]/sqrt(sonsip(basis[i],basis[i]))
+			squaredNorm[i] = 1.0
+		else
+			squaredNorm[i] = real(sonsip(basis[i], basis[i]))
+		end
+	end
+	# Intra-degree recombinations
+	if recombineFlag
+		for k = 0:maxdeg
+			rng = ZernikeSuite.positionRange(k)
+			basis[rng] = recombine(basis[rng])
+		end
+	end
+	return basis
+end
