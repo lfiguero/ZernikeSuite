@@ -59,7 +59,14 @@ for op = (:+, :-)
 end
 
 # Operations with scalars
-for op = (:+, :-, :*, :/)
+for op = (:+, :-)
+    @eval begin
+	function ($op)(f::ZFun, a::Number)
+		($op)(f, ZFun(f.α, 0, [a]))
+	end
+    end
+end
+for op = (:*, :/)
     @eval begin
 	function ($op)(f::ZFun, a::Number)
 	    ZFun(f.α, f.degree, ($op)(f.coefficients, a))
