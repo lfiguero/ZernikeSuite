@@ -371,7 +371,7 @@ function fifteenthSeptemberTest(α::Real, maxdeg::Integer, j::Integer)
 	return [term1[:] term2[:] term3[:] term4[:]], full
 end
 
-# First order parameter raising operator
+# First order parameter lowering operator
 function foplo(f::ZFun, b::Real, j::Integer)
 	@assert j==1 || j==2
 	mj = (j==1) ? mx : my
