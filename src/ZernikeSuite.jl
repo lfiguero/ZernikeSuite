@@ -2,7 +2,7 @@ module ZernikeSuite
 
 import Base: +, -, *, /
 
-export ZFun, mzp, mzs, mx, my, dzs, dzp, dx, dy, dθ, proj, wip, w_sobolev_sq_sn, w_nc_sobolev_sq_sn, all_w_sobolev_sq_sn, all_w_nc_sobolev_sq_sn, ZernikePoly
+export ZFun, mzp, mzs, mx, my, dzs, dzp, dx, dy, dθ, proj, sliceproj, wip, norm, w_sobolev_sq_sn, w_nc_sobolev_sq_sn, all_w_sobolev_sq_sn, all_w_nc_sobolev_sq_sn, ZernikePoly
 
 function isPolySpaceDim(l::Integer)
     # Given l returns a Boolean and an integer; the Boolean is set to true if l
@@ -245,6 +245,15 @@ function proj(f::ZFun, d::Integer)
     ZFun(f.α, ed, f.coefficients[1:polyDim(ed)])
 end
 
+function sliceproj(f::ZFun, d::Integer)
+	if d < 0 || d > f.degree
+		return ZFun(f.α, 0, [0.0])
+	end
+	outcoefs = zeros(ComplexF64, polyDim(d))
+	outcoefs[positionRange(d)] = f.coefficients[positionRange(d)]
+	ZFun(f.α, d, outcoefs)
+end
+
 # Squared weighted L^2 norms of the Zernike basis functions
 function h(α::Real, maxdeg::Integer)
     # In order to avoid under/overflows we will compute the norms recursively
@@ -274,6 +283,8 @@ function wip(f::ZFun, g::ZFun)
     wgth = h(f.α, md)
     (g.coefficients[1:l]'*(wgth.*f.coefficients[1:l]))[1]
 end
+
+norm(f::ZFun) = sqrt(real(wip(f,f)))
 
 # Higher gradient collections
 function hgcoll(f::ZFun, m::Integer)
