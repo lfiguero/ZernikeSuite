@@ -1,7 +1,7 @@
 import LinearAlgebra: qr, svd, diag, Diagonal, dot, norm, rank, I
 import Random: MersenneTwister
 
-export sip, ssp
+export sip, ssp, sp
 
 function sip(f::ZFun, g::ZFun)
     @assert (f.α == g.α == 0) || abs(f.α-g.α)/min(abs(f.α),abs(g.α)) < 10*eps()
@@ -481,6 +481,25 @@ function ssp(f::ZFun, d)
 		return ZFun(f.α, 0, [0.0])
 	end
 	b = SOP(f.α, d)[positionRange(d)]
+	mat = [sip(v,u) for u in b, v in b]
+	vec = [sip(f,v) for v in b]
+	c = mat\vec
+	out = ZFun(f.α, d, zeros(ComplexF64, polyDim(d)))
+	for i = 1:length(b)
+		out = out + c[i]*b[i]
+	end
+	out
+end
+
+# Sobolev projection
+function sp(f::ZFun, d)
+	if d < 0
+		return ZFun(f.α, 0, [0.0])
+	end
+	if d ≥ f.degree
+		return f
+	end
+	b = SOP(f.α, d)
 	mat = [sip(v,u) for u in b, v in b]
 	vec = [sip(f,v) for v in b]
 	c = mat\vec
