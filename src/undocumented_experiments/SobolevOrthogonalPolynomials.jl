@@ -412,7 +412,7 @@ function sonsip(f::ZFun, g::ZFun)
 	semi + 2.0 * (wip(proj(dzp(f),0),proj(dzp(g),0)) + wip(proj(dzs(f),0),proj(dzs(g),0))) + wip(proj(f,0),proj(g,0))
 end
 
-# Generation of second order old Sobolev orthogonal polynomials through the Gram–Schmidth process
+# Generation of second order old Sobolev orthogonal polynomials through the Gram–Schmidt process
 function sooSOP(α::Real, maxdeg::Integer, normalizeFlag::Bool=false, recombineFlag::Bool=false)
 	@assert α > -1
 	@assert maxdeg ≥ 0
@@ -444,7 +444,7 @@ function sooSOP(α::Real, maxdeg::Integer, normalizeFlag::Bool=false, recombineF
 end
 
 
-# Generation of second order new Sobolev orthogonal polynomials through the Gram–Schmidth process
+# Generation of second order new Sobolev orthogonal polynomials through the Gram–Schmidt process
 function sonSOP(α::Real, maxdeg::Integer, normalizeFlag::Bool=false, recombineFlag::Bool=false)
 	@assert α > -1
 	@assert maxdeg ≥ 0
