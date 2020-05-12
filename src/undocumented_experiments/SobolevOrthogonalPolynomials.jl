@@ -509,3 +509,11 @@ function sp(f::ZFun, d)
 	end
 	out
 end
+
+# Strong Sturm–Louville operator for SOP
+function sslsop(f::ZFun)
+	α = f.α
+	main = -mbump(dx(dx(f))+dy(dy(f))) + 2*α*(mx(dx(f))+my(dy(f))) - dθ(dθ(f))
+	K = 2*proj(mx(dx(f))+my(dy(f)),0)
+	main + K
+end
