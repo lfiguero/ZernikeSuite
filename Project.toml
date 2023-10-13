@@ -1,7 +1,7 @@
 name = "ZernikeSuite"
 uuid = "7912161a-dcd7-4272-bf0d-605a53c6b79d"
 authors = ["Leonardo Figueroa <leonardo@leonardofigueroa.org>"]
-version = "0.1.0"
+version = "0.1.1"
 
 [deps]
 Arpack = "7d9fca2a-8960-54d3-9f78-7d1dccf2cb97"

@@ -2,9 +2,9 @@ function normRatio()
 	col = (α,j,n) -> [ZernikeSuite.ZernikePoly(α+j, i, n-i) for i=0:n];
 
 	function ratio(f::ZernikeSuite.ZFun, j::Integer)
-	    fshifted = ZernikeSuite.lower(f)
+	    fshifted = lower(f)
 	    for i = 2:j
-		fshifted = ZernikeSuite.lower(fshifted)
+		fshifted = lower(fshifted)
 	    end
 	    real(ZernikeSuite.wip(fshifted,fshifted)/ZernikeSuite.wip(f,f))
 	end

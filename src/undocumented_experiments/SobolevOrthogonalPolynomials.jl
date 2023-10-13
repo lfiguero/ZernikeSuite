@@ -10,15 +10,14 @@ end
 
 function bf(f::ZFun, g::ZFun)
     @assert (f.α == g.α == 0) || abs(f.α-g.α)/min(abs(f.α),abs(g.α)) < 10*eps()
-    ZRaise = ZernikeSuite.raise
-    dzpzpf = ZRaise(dzp(dzp(f)))
-    dzpzsf = ZRaise(dzp(dzs(f)))
-    dzszpf = ZRaise(dzs(dzp(f)))
-    dzszsf = ZRaise(dzs(dzs(f)))
-    dzpzpg = ZRaise(dzp(dzp(g)))
-    dzpzsg = ZRaise(dzp(dzs(g)))
-    dzszpg = ZRaise(dzs(dzp(g)))
-    dzszsg = ZRaise(dzs(dzs(g)))
+    dzpzpf = raise(dzp(dzp(f)))
+    dzpzsf = raise(dzp(dzs(f)))
+    dzszpf = raise(dzs(dzp(f)))
+    dzszsf = raise(dzs(dzs(f)))
+    dzpzpg = raise(dzp(dzp(g)))
+    dzpzsg = raise(dzp(dzs(g)))
+    dzszpg = raise(dzs(dzp(g)))
+    dzszsg = raise(dzs(dzs(g)))
     4.0 * (wip(dzpzpf,dzpzpg) + wip(dzpzsf,dzpzsg) + wip(dzszpf,dzszpg) + wip(dzszsf,dzszsg)) + 2.0 * (wip(dθ(dzp(f)), dθ(dzp(g))) + wip(dθ(dzs(f)), dθ(dzs(g))))
 end
 
@@ -117,7 +116,7 @@ mbump(f::ZFun) = f - mzp(mzs(f))
 
 # Test of a possibly useful identity
 function tenthAugustTest(α::Real, m::Integer, n::Integer)
-	obj = ZernikeSuite.lower(ZernikePoly(α+1, m, n))
+	obj = lower(ZernikePoly(α+1, m, n))
 	xsqobj = mzp(mzs(obj))
 	dzsobj = dzs(obj)
 	dzpobj = dzp(obj)
@@ -135,7 +134,7 @@ end
 
 # Test of another possibly useful identity
 function seventeenthAugustTest(α::Real, m::Integer, n::Integer)
-	obj = ZernikeSuite.lower(ZernikePoly(α+1, m, n))
+	obj = lower(ZernikePoly(α+1, m, n))
 	lhs1 = -m*(α+1)*mzp(mzs(obj)) - (α+2)*mbump(mzp(dzp(obj))) + m*mbump(obj + mzs(dzs(obj))) + mbump(mbump(dzs(dzp(obj))))
 	rhs1 = -m*(α+1)*ZernikePoly((α+1)-1, m, n)
 	res1 = rhs1 - lhs1
@@ -149,7 +148,7 @@ end
 
 # Yet another test of a possibly useful identity
 function eighteenthAugustTest(α::Real, m::Integer, n::Integer)
-	obj = ZernikeSuite.lower(ZernikePoly(α+1, m, n))
+	obj = lower(ZernikePoly(α+1, m, n))
 	lhs1 = (α+1)*mzs(mzp(obj)) + (m+α+1)*mbump(obj) - mbump(mzp(dzp(obj)))
 	rhs1 = (α+1)*ZernikePoly((α+1)-1, m, n)
 	res1 = rhs1 - lhs1
@@ -163,7 +162,7 @@ end
 
 # More tests
 function twentysecondAugustTest(α::Real, m::Integer, n::Integer)
-	obj = ZernikeSuite.lower(ZernikePoly(α+1, m-1, n-1))
+	obj = lower(ZernikePoly(α+1, m-1, n-1))
 	lhs = -2*α*(α+1)*mzp(mzs(obj)) + (2*m*n+α*(m+n))*mbump(obj) + α*mbump(mzs(dzs(obj))+mzp(dzp(obj)))
 	Q = ZernikePoly((α+1)-1, m, n) - m*n/(m+α)/(n+α)*ZernikePoly((α+1)-1, m-1, n-1)
 	rhs = -2*(α+1)*(m+α)*(n+α)/(m+n+α)*Q
@@ -173,7 +172,7 @@ function twentysecondAugustTest(α::Real, m::Integer, n::Integer)
 end
 
 function OPSOPTestsA(α::Real, maxdeg::Integer)
-	OPBasis = [ZernikeSuite.lower(ZernikePoly(α+1, i, maxdeg-i)) for i in 0:maxdeg]
+	OPBasis = [lower(ZernikePoly(α+1, i, maxdeg-i)) for i in 0:maxdeg]
 	rng = MersenneTwister(0) # For reproducibility
 	mat = randn(rng,maxdeg+1,maxdeg+1) + im*randn(rng,maxdeg+1,maxdeg+1)
 	OP = [sum(mat[i,:].*OPBasis) for i in 1:maxdeg+1]
@@ -218,7 +217,7 @@ function matrixKernelStudy(mat::Matrix{ComplexF64})
 end
 
 function OPSOPTestsB(α::Real, maxdeg::Integer)
-	OPBasis = [ZernikeSuite.lower(ZernikePoly(α+1, i, maxdeg-i)) for i in 0:maxdeg]
+	OPBasis = [lower(ZernikePoly(α+1, i, maxdeg-i)) for i in 0:maxdeg]
 	rng = MersenneTwister(0) # For reproducibility
 	mat = randn(rng,maxdeg+1,maxdeg+1) + im*randn(rng,maxdeg+1,maxdeg+1)
 	OP = [sum(mat[i,:].*OPBasis) for i in 1:maxdeg+1]
@@ -251,7 +250,7 @@ function OPSOPTestsB(α::Real, maxdeg::Integer)
 end
 
 function OPSOPTestsC(α::Real, maxdeg::Integer)
-	OPBasis = [ZernikeSuite.lower(ZernikePoly(α+1, i, maxdeg-i)) for i in 0:maxdeg]
+	OPBasis = [lower(ZernikePoly(α+1, i, maxdeg-i)) for i in 0:maxdeg]
 	rng = MersenneTwister(0) # For reproducibility
 	mat = randn(rng,maxdeg+1,maxdeg+1) + im*randn(rng,maxdeg+1,maxdeg+1)
 	OP = [sum(mat[i,:].*OPBasis) for i in 1:maxdeg+1]
@@ -276,7 +275,7 @@ function OPSOPTestsC(α::Real, maxdeg::Integer)
 end
 
 function OPSOPTestsC4(α::Real, maxdeg::Integer)
-	OPBasis = [ZernikeSuite.lower(ZernikePoly(α+1, i, maxdeg-i)) for i in 0:maxdeg]
+	OPBasis = [lower(ZernikePoly(α+1, i, maxdeg-i)) for i in 0:maxdeg]
 	rng = MersenneTwister(0) # For reproducibility
 	mat = randn(rng,maxdeg+1,maxdeg+1) + im*randn(rng,maxdeg+1,maxdeg+1)
 	OP = [sum(mat[i,:].*OPBasis) for i in 1:maxdeg+1]
@@ -301,7 +300,7 @@ function OPSOPTestsC4(α::Real, maxdeg::Integer)
 end
 
 function OPSOPTestsC5(α::Real, maxdeg::Integer)
-	OPBasis = [ZernikeSuite.lower(ZernikePoly(α+1, i, maxdeg-i)) for i in 0:maxdeg]
+	OPBasis = [lower(ZernikePoly(α+1, i, maxdeg-i)) for i in 0:maxdeg]
 	rng = MersenneTwister(0) # For reproducibility
 	mat = randn(rng,maxdeg+1,maxdeg+1) + im*randn(rng,maxdeg+1,maxdeg+1)
 	OP = [sum(mat[i,:].*OPBasis) for i in 1:maxdeg+1]
@@ -327,7 +326,7 @@ function OPSOPTestsC5(α::Real, maxdeg::Integer)
 end
 
 function OPSOPTestsC6(α::Real, maxdeg::Integer)
-	OPBasis = [ZernikeSuite.lower(ZernikePoly(α+1, i, maxdeg-i)) for i in 0:maxdeg]
+	OPBasis = [lower(ZernikePoly(α+1, i, maxdeg-i)) for i in 0:maxdeg]
 	rng = MersenneTwister(0) # For reproducibility
 	mat = randn(rng,maxdeg+1,maxdeg+1) + im*randn(rng,maxdeg+1,maxdeg+1)
 	OP = [sum(mat[i,:].*OPBasis) for i in 1:maxdeg+1]
@@ -383,7 +382,7 @@ end
 
 function optosop(f::ZFun)
 	α = f.α-1.0
-	return ZernikeSuite.lower(foplo(foplo(f, α, 1), α-1, 1) + foplo(foplo(f, α, 2), α-1, 2))
+	return lower(foplo(foplo(f, α, 1), α-1, 1) + foplo(foplo(f, α, 2), α-1, 2))
 end
 
 # Second order Sobolev semi-inner product
