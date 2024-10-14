@@ -2,7 +2,7 @@ module ZernikeSuite
 
 import Base: +, -, *, /
 
-export ZFun, mzp, mzs, mx, my, dzs, dzp, dx, dy, dθ, raise, lower, proj, sliceproj, wip, norm, w_sobolev_sq_sn, w_nc_sobolev_sq_sn, all_w_sobolev_sq_sn, all_w_nc_sobolev_sq_sn, ZernikePoly
+export ZFun, mzp, mzs, mx, my, dzs, dzp, dx, dy, dθ, raise, lower, proj, sliceproj, wip, wnorm, w_sobolev_sq_sn, w_nc_sobolev_sq_sn, all_w_sobolev_sq_sn, all_w_nc_sobolev_sq_sn, ZernikePoly
 
 function isPolySpaceDim(l::Integer)
     # Given l returns a Boolean and an integer; the Boolean is set to true if l
@@ -284,7 +284,7 @@ function wip(f::ZFun, g::ZFun)
     (g.coefficients[1:l]'*(wgth.*f.coefficients[1:l]))[1]
 end
 
-norm(f::ZFun) = sqrt(real(wip(f,f)))
+wnorm(f::ZFun) = sqrt(real(wip(f,f)))
 
 # Higher gradient collections
 function hgcoll(f::ZFun, m::Integer)
